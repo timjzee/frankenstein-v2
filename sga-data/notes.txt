@@ -1,0 +1,20 @@
+- in <zone type="main">
+
+MWS:
+- alles in <line> wat niet is <del>
+- alles in <line> & <add> zonder attribute 'hand', en niet in <metamark>
+
+PBS:
+- alles in <line> & <add> met attribute 'hand', en niet in <metamark>
+
+
+
+<locus target="#ox-ms_abinger_c56-0015">second half</locus> is actually <anchor xml:id="c56-0015.03"/>
+
+need function to express relations between lines in zones other than main zone and target anchor in main zone
+    <zone type="left_margin" corresp="#c56-0026.01"> --> <anchor xml:id="c56-0026.01"/>
+add functionality that makes this work across files, e.g.:
+    <anchor xml:id="c56-0028.01"/> --> <zone type="left_margin" corresp="#c56-0028.01"><anchor xml:id="c56-0029.01"/></zone> --> <zone type="left_margin" corresp="#c56-0029.01">
+
+need function to handle hand attribution of multiple lines
+    using <addSpan hand="#pbs" spanTo="#c56-0026.02"/> and an anchor <anchor xml:id="c56-0026.02"/>
