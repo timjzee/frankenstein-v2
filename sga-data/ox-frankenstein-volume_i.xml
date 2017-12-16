@@ -31,7 +31,7 @@
                 <availability status="free">
                     <licence target="http://creativecommons.org/publicdomain/zero/1.0/">
                         <p>CC0 1.0 Universal.</p>
-                        <p> To the extent possible under law, the creators of the metadata records for the Shelley-Godwin Archive 
+                        <p> To the extent possible under law, the creators of the metadata records for the Shelley-Godwin Archive
                             have waived all copyright and related or neighboring rights to this work.</p>
                     </licence>
                 </availability>
@@ -65,7 +65,7 @@
                                 <msItem class="#chapter" n="1">
                                     <locusGrp>
                                         <locus target="#ox-ms_abinger_c56-0011 #ox-ms_abinger_c56-0012"/>
-                                        <locus target="#ox-ms_abinger_c56-0013">all but last 4 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0013" toLine="7">all but last 4 lines</locus>
                                     </locusGrp>
                                     <bibl>
                                         <title>Chapter 1</title>
@@ -74,11 +74,10 @@
                                 <msItem class="#chapter" n="2">
                                     <locusGrp>
                                         <locus target="#ox-ms_abinger_c56-0005 #ox-ms_abinger_c56-0006 #ox-ms_abinger_c56-0007 #ox-ms_abinger_c56-0008"/>
-                                        <locus target="#ox-ms_abinger_c56-0009">first 3 lines</locus>
-                                        <locus target="#ox-ms_abinger_c56-0013">last 4 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0009" toLine="3">first 3 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0013" fromLine="8">last 4 lines</locus>
                                         <locus target="#ox-ms_abinger_c56-0014"/>
-                                        <locus target="#ox-ms_abinger_c56-0015">first half</locus>
-                                        <locus target="#ox-ms_abinger_c56-0009">all but first 3 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0009" fromLine="4">all but first 3 lines</locus>
                                         <locus target="#ox-ms_abinger_c56-0010"/>
                                         <locus target="#ox-ms_abinger_c56-0015">second half</locus>
                                         <locus target="#ox-ms_abinger_c56-0016"/>
@@ -103,7 +102,7 @@
                                         <title>Chapter 4</title>
                                     </bibl>
                                 </msItem>
-                                <msItem class="#chapter" n="5">                                    
+                                <msItem class="#chapter" n="5">
                                     <locusGrp>
                                         <locus target="#ox-ms_abinger_c56-0031 #ox-ms_abinger_c56-0032 #ox-ms_abinger_c56-0033 #ox-ms_abinger_c56-0034 #ox-ms_abinger_c56-0035 #ox-ms_abinger_c56-0036 #ox-ms_abinger_c56-0037"/>
                                     </locusGrp>
@@ -211,7 +210,7 @@
         <revisionDesc>
             <change who="#RV" when="2015-03-12">Made volume and chapter metadata valid.</change>
             <change who="#TB" when="2014-04-09">Added metadata about volumes and chapters.</change>
-            <change who="#RV" when="2014-01-21">Added metadata.</change>            
+            <change who="#RV" when="2014-01-21">Added metadata.</change>
         </revisionDesc>
     </teiHeader>
     <sourceDoc>

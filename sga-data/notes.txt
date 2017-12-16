@@ -8,7 +8,15 @@ PBS:
 - alles in <line> & <add> met attribute 'hand', en niet in <metamark>
 
 
+Page notes:
 
+Chapter 1:
+- #ox-ms_abinger_c56-0013:  everything until <line><del rend="strikethrough" xml:id="c56-0013.06">
+
+Chapter 2:
+- #ox-ms_abinger_c56-0009:  up until and including line 3
+- #ox-ms_abinger_c56-0013:  everything from <line><del rend="strikethrough" xml:id="c56-0013.06">
+- #ox-ms_abinger_c56-0015:  
 <locus target="#ox-ms_abinger_c56-0015">second half</locus> is actually <anchor xml:id="c56-0015.03"/>
 
 need function to express relations between lines in zones other than main zone and target anchor in main zone
