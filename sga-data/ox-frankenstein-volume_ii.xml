@@ -31,7 +31,7 @@
                 <availability status="free">
                     <licence target="http://creativecommons.org/publicdomain/zero/1.0/">
                         <p>CC0 1.0 Universal.</p>
-                        <p> To the extent possible under law, the creators of the metadata records for the Shelley-Godwin Archive 
+                        <p> To the extent possible under law, the creators of the metadata records for the Shelley-Godwin Archive
                             have waived all copyright and related or neighboring rights to this work.</p>
                     </licence>
                 </availability>
@@ -87,15 +87,12 @@
                                 </msItem>
                                 <msItem class="#chapter" n="5">
                                     <locusGrp>
-                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0023"/>
-                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0024">first 4 lines</locus>
-                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0025">none</locus>
                                         <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0031 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0032"/>
-                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0033">first third</locus>
+                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0033" toLine="8">first third</locus>
                                         <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0024">all but first 4 lines</locus>
                                         <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0025">all</locus>
                                         <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0026 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0027 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0028 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0029 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0030"/>
-                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0033">all but first third</locus>
+                                        <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0033" fromLine="9">all but first third</locus>
                                         <locus target="ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0034 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0035 ox-frankenstein_notebook_a.xml#ox-ms_abinger_c57-0036"/>
                                     </locusGrp>
                                     <bibl>
@@ -136,11 +133,10 @@
                                 </msItem>
                                 <msItem class="#chapter" n="10">
                                     <locusGrp>
-                                        <locus target="#ox-ms_abinger_c57-0074">first 5 lines</locus>
-                                        <locus target="#ox-ms_abinger_c57-0075 #ox-ms_abinger_c57-0076"/>
-                                        <locus target="#ox-ms_abinger_c57-0074">all but first 5 lines</locus>
-                                        <locus target="#ox-ms_abinger_c57-0077 #ox-ms_abinger_c57-0078 #ox-ms_abinger_c57-0079"/>
-                                        <locus target="#ox-ms_abinger_c57-0080">first third</locus>
+                                        <locus target="#ox-ms_abinger_c57-0074" fromLine="2" toLine="6">first 5 lines</locus>
+                                        <locus target="#ox-ms_abinger_c57-0075"/>
+                                        <locus target="#ox-ms_abinger_c57-0074" fromLine="7">all but first 5 lines</locus>
+                                        <locus target="#ox-ms_abinger_c57-0077 #ox-ms_abinger_c57-0078"/>
                                         <locus target="#ox-ms_abinger_c57-0081 #ox-ms_abinger_c57-0082 #ox-ms_abinger_c57-0083 #ox-ms_abinger_c57-0084 #ox-ms_abinger_c57-0085 #ox-ms_abinger_c57-0086"/>
                                         <locus target="#ox-ms_abinger_c57-0080">all but first third</locus>
                                         <locus target="#ox-ms_abinger_c57-0087 #ox-ms_abinger_c57-0088 #ox-ms_abinger_c57-0089 #ox-ms_abinger_c57-0090 #ox-ms_abinger_c57-0091"/>
@@ -231,7 +227,7 @@
         <revisionDesc>
             <change who="#RV" when="2015-03-12">Made volume and chapter metadata valid.</change>
             <change who="#TB" when="2014-04-09">Added metadata about volumes and chapters.</change>
-            <change who="#RV" when="2014-01-22">Added metadata.</change>     
+            <change who="#RV" when="2014-01-22">Added metadata.</change>
         </revisionDesc>
     </teiHeader>
     <sourceDoc>

@@ -6,7 +6,7 @@
   mith:shelfmark="MS. Abinger c. 57" mith:folio="13r" partOf="ox-frankenstein_notebook_b.xml#ox-frankenstein_volume_ii">
   <graphic url="http://shelleygodwinarchive.org/images/ox/ms_abinger_c57/ms_abinger_c57-0025.jp2"/>
   <zone type="pagination"><line>60</line></zone>
-  
+
   <zone type="library"><line>13</line></zone>
   <zone type="main">
     <line>terms of her <hi rend="sup">60</hi> Mother who born in freedom</line>
@@ -63,7 +63,7 @@
     <line>many leagues from Paris. Felix has procurred</line>
     <line>passports in the name of his</line><damage type="tear"/>
     <line>father sister &amp; himself.</line><damage type="tear"/>
-    <line>He communicated hi<damage type="tear"/></line>
+    <line>He communicated his<damage type="tear"/></line>
     <line>plan to the former<damage type="tear"/></line>
     <line>who aided the</line>
   </zone>

@@ -51,13 +51,14 @@ def processLine(line_element, from_index, page_root, page_tree):
     counter = 0
     for i in line_element.iter():
         if counter >= from_index:
-            if i.tag in ["add", "hi"] and "del" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
-                if i.text not in [None, "", "\n"]:
-                    print(i.text)
-                i_parent = i.getparent()
-                if i_parent.tag == "mod" and len(i_parent.getchildren()) == (i_parent.index(i) + 1):
-                    if i_parent.tail not in [None, "", "\n"]:
-                        print(i_parent.tail)                                    # Prints text that follows a <mod> after text of additions within <mod> have been printed
+            if i.tag in ["add", "hi"]:
+                if "del" not in page_tree.getelementpath(i) and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
+                    if i.text not in [None, "", "\n"]:
+                        print(i.text)
+                    i_parent = i.getparent()
+                    if i_parent.tag == "mod" and len(i_parent.getchildren()) == (i_parent.index(i) + 1):
+                        if i_parent.tail not in [None, "", "\n"]:
+                            print(i_parent.tail)                                    # Prints text that follows a <mod> after text of additions within <mod> have been printed
             elif i.tag == "delSpan":                                            # Breaks out of the line if a deletion spans multiple lines
                 global delspan
                 delspan = True
@@ -115,6 +116,7 @@ processZone("main", "", root, tree)
 
 # next steps:
 #   - add text from <unclear> tags
+#   - add functionality for references to displaced text within same zone: <metamark function="displacement" xml:id="c57-0024.02">X</metamark>
 #   - implement hand attribution
 #       - <add place="superlinear" hand="#pbs">power</add>
 #       - <handShift new="#pbs"/>
@@ -128,3 +130,4 @@ processZone("main", "", root, tree)
 #       - line counter for use with fromLine and toLine attributes
 #       - if (line < fromLine or line > toLine) then ignore-line = True
 #       - else ignore-line = False
+# DONE  - text within <hi> should not be printed if in <metamark>: <metamark function="displacement" xml:id="c57-0074.01"><hi rend="sup">X</hi>1</metamark>
