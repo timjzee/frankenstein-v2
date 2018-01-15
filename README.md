@@ -1,7 +1,7 @@
 # frankenstein-v2
 
 ## next steps:
-- add text from <unclear> tags
+- add text from `<unclear>` tags
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
@@ -23,7 +23,7 @@
     - line counter for use with fromLine and toLine attributes
     - if (line < fromLine or line > toLine) then ignore-line = True
     - else ignore-line = False
-  - ~~text within <hi> should not be printed if in <metamark>~~
+  - ~~text within < hi > should not be printed if in < metamark >~~
   - process text:
     - remove redundant newlines, spaces
     - handle EOL hyphens
