@@ -1,6 +1,7 @@
 # Test script for a single page
 from lxml import etree
 import io
+import re
 
 page_id = "ox-ms_abinger_c57-0024"
 
@@ -45,9 +46,23 @@ def getPageRoot(page_name):
     return rt, tr
 
 
+def processText(raw_text, no_of_calls, mod_status):
+    """Cleans up text."""
+    global print_text
+    if mod_status:  # complex modifications need no extra spaces
+        new_text = re.sub(r"\n *", "", raw_text)  # deals with newlines and spaces due to xml structure
+    else:  # simple adds need an extra space for reading text
+        new_text = re.sub(r"\n *", " ", raw_text)
+    print_text += new_text
+    print("#" + new_text + "#")  # Debug output
+    # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
+
+
 def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_tree, displ_ids, displ_end_id):
+    process_text_calls = 0
     if line_element.text not in [None, "", "\n"] and from_index == 0:
-        print(line_element.text)                                                # Prints text at the start of a line
+        process_text_calls += 1
+        processText(line_element.text, process_text_calls, False)               # Prints text at the start of a line
     counter = 0
     for i in line_element.iter():
         if counter >= from_index:
@@ -55,12 +70,14 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
             if i.tag in allowed_tags:
                 if "del" not in page_tree.getelementpath(i) and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
                     if i.text not in [None, "", "\n"]:
-                        print(i.text)
+                        process_text_calls += 1
+                        mod = True if "mod" in page_tree.getelementpath(i) else False
+                        processText(i.text, process_text_calls, mod)
                     i_parent = i.getparent()
-                    # if i_parent.tag == "mod" and len(i_parent.getchildren()) == (i_parent.index(i) + 1):
                     if i_parent.tag == "mod" and i_parent.index(i) == max(loc for loc, val in enumerate(i_parent.getchildren()) if val.tag in allowed_tags):
                         if i_parent.tail not in [None, "", "\n"]:
-                            print(i_parent.tail)                                    # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                            process_text_calls += 1
+                            processText(i_parent.tail, process_text_calls, True)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
             elif i.tag == "delSpan" or (i.tag == "addSpan" and i.get("corresp")[1:] in displ_ids):  # Breaks out of the line if a deletion spans multiple lines
                 global delspan
                 delspan = True
@@ -81,8 +98,10 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                         new_root, new_tree = getPageRoot(new_page_id)
                         if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
                             processZone("", anch_id, new_root, new_tree, None, displ_ids)
-            if i.tail not in [None, "", "\n"] and i.tag != "mod":               # Prints text after/between additions that aren't contained within a <mod>
-                print(i.tail)
+            if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"]:          # Prints text after/between additions that aren't contained within a <mod>
+                process_text_calls += 1
+                mod = True if "mod" in page_tree.getelementpath(i) else False
+                processText(i.tail, process_text_calls, mod)
         counter += 1
     return False
 
@@ -153,5 +172,6 @@ root, tree = getPageRoot(page_id)
 
 delspan = False
 delspan_id = ""
-
+print_text = ""
 processZone("main", "", root, tree, None, [])
+print(print_text)
