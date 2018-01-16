@@ -2,6 +2,7 @@
 from lxml import etree
 import io
 import re
+import requests
 
 page_id = "ox-ms_abinger_c57-0024"
 
@@ -46,23 +47,86 @@ def getPageRoot(page_name):
     return rt, tr
 
 
+def callDatamuse(word):
+    """Uses the datamuse API to find (scores for) words"""
+    base_url = "https://api.datamuse.com/words?sp="
+    output = requests.get(base_url + word)
+    output_list = output.json()
+    if len(output_list) != 0:
+        matched_words = [i["word"] for i in output_list]
+        if word not in matched_words:  # takes into account when datamuse returns a number of words or a different 'related' word
+            score = 0
+        else:
+            score = output_list[matched_words.index(word)]["score"]
+    else:
+        score = 0
+    return score
+
+
 def processText(raw_text, no_of_calls, mod_status):
     """Cleans up text."""
     global print_text
-    if mod_status:  # complex modifications need no extra spaces
-        new_text = re.sub(r"\n *", "", raw_text)  # deals with newlines and spaces due to xml structure
+    global dict_call_counter
+    if mod_status:  # complex modifications and simple deletions need no extra spaces
+        new_text = re.sub(r"\n *", "", raw_text)  # deals with newlines and spaces of xml structure
     else:  # simple adds need an extra space for reading text
         new_text = re.sub(r"\n *", " ", raw_text)
-    print_text += new_text
-    print("#" + new_text + "#")  # Debug output
     # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
+    if no_of_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
+        if print_text[-1] == "-":
+            print_text = print_text[:-1] + new_text
+            print("#" + new_text + "# - A")
+        elif print_text[-1] == " ":
+            print_text += new_text
+            print("#" + new_text + "# - B")
+        elif print_text[-1] in [".", ",", "!", "?"]:
+            if new_text[0] == " ":
+                print_text += new_text
+                print("#" + new_text + "# - C")
+            else:
+                print_text += " " + new_text
+                print("#" + new_text + "# - D")
+        else:
+            if new_text[0] == " ":
+                print_text += new_text
+                print("#" + new_text + "# - E")
+            else:  # determine whether two parts are words
+                prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
+                prevline_part_score = callDatamuse(prevline_part)
+                curline_part = re.match(r"[^ ]+", new_text).group()  # finds consecutive line-initial non-space characters
+                curline_part_score = callDatamuse(curline_part)
+                combined_word = prevline_part + curline_part
+                combined_score = callDatamuse(combined_word)
+                if (prevline_part_score + curline_part_score) / 2 > combined_score:
+                    print_text += " " + new_text
+                    print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+                    print("#" + new_text + "# - F")
+                else:
+                    print_text += new_text
+                    print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+                    print("#" + new_text + "# - G")
+                dict_call_counter += 3
+    else:
+        if print_text != "" and new_text != "":
+            if print_text[-1] == " " and new_text[0] == " ":
+                print_text += new_text[1:]
+                print("#" + new_text + "# - H")
+            else:
+                print_text += new_text
+                print("#" + new_text + "# - I")
+        else:
+            print_text += new_text
+            print("#" + new_text + "# - J")
+    if new_text in ["", " "]:
+        no_of_calls -= 1
+    return no_of_calls
 
 
 def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_tree, displ_ids, displ_end_id):
     process_text_calls = 0
     if line_element.text not in [None, "", "\n"] and from_index == 0:
         process_text_calls += 1
-        processText(line_element.text, process_text_calls, False)               # Prints text at the start of a line
+        process_text_calls = processText(line_element.text, process_text_calls, False)               # Prints text at the start of a line
     counter = 0
     for i in line_element.iter():
         if counter >= from_index:
@@ -72,12 +136,12 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     if i.text not in [None, "", "\n"]:
                         process_text_calls += 1
                         mod = True if "mod" in page_tree.getelementpath(i) else False
-                        processText(i.text, process_text_calls, mod)
+                        process_text_calls = processText(i.text, process_text_calls, mod)
                     i_parent = i.getparent()
                     if i_parent.tag == "mod" and i_parent.index(i) == max(loc for loc, val in enumerate(i_parent.getchildren()) if val.tag in allowed_tags):
                         if i_parent.tail not in [None, "", "\n"]:
                             process_text_calls += 1
-                            processText(i_parent.tail, process_text_calls, True)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                            process_text_calls = processText(i_parent.tail, process_text_calls, True)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
             elif i.tag == "delSpan" or (i.tag == "addSpan" and i.get("corresp")[1:] in displ_ids):  # Breaks out of the line if a deletion spans multiple lines
                 global delspan
                 delspan = True
@@ -85,23 +149,26 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                 delspan_id = i.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
                 return False
             elif i.tag == "metamark" and (i.get("id") in displ_ids):
+                process_text_calls = 0
                 processZone(zone_type, anchor_id, page_root, page_tree, i.get("id"), displ_ids)
             elif i.tag == "anchor":                                             # Checks for anchor in a line and references a different zone
                 if i.get("id") == displ_end_id:
                     return True
                 anch_id = "#" + i.get("id")
                 if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
+                    process_text_calls = 0
                     processZone("", anch_id, page_root, page_tree, None, displ_ids)
                 else:                                                           # Checks for referenced zone on different page
                     new_page_id = "ox-ms_abinger_" + anch_id[1:].split(".")[0]
                     if new_page_id != page_id:
                         new_root, new_tree = getPageRoot(new_page_id)
                         if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
+                            process_text_calls = 0
                             processZone("", anch_id, new_root, new_tree, None, displ_ids)
             if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"]:          # Prints text after/between additions that aren't contained within a <mod>
                 process_text_calls += 1
                 mod = True if "mod" in page_tree.getelementpath(i) else False
-                processText(i.tail, process_text_calls, mod)
+                process_text_calls = processText(i.tail, process_text_calls, mod)
         counter += 1
     return False
 
@@ -173,5 +240,7 @@ root, tree = getPageRoot(page_id)
 delspan = False
 delspan_id = ""
 print_text = ""
+dict_call_counter = 0
 processZone("main", "", root, tree, None, [])
 print(print_text)
+print(dict_call_counter)
