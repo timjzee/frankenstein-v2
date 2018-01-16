@@ -25,6 +25,6 @@
     - else ignore-line = False
   - ~~text within < hi > should not be printed if in < metamark >~~
   - process text:
-    - remove redundant newlines, spaces
-    - handle EOL hyphens
+    - ~~remove redundant newlines, spaces~~
+    - ~~handle EOL hyphens~~
     - handle capitalization
