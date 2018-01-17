@@ -82,7 +82,7 @@
         <add place="sublinear" hand="#mws"><metamark function="insert">^</metamark></add>
         <add place="superlinear" hand="#mws">had</add>
       </mod>
-      <retrace cause="fix" hand="#mws" spanTo="#c56-0028.06"/>left to</line>
+      <retrace cause="fix" hand="#mws" spanTo="#c56-0028.06"/> left to</line>
     <line>us, as an easier</line>
     <line>task to give new</line>
     <line>names, &#x26; arrange</line>

@@ -11,9 +11,9 @@
   - ~~if metamark="displacement" with id (in either line or zone) is found, processSubZone~~
 - implement hand attribution
   - Types:
-    - `<add place="superlinear" hand="#pbs">power</add>`
-    - `<handShift new="#pbs"/>`
-    - `<addSpan hand="#pbs" spanTo="#c56-0026.05"/>`
+    - `<add place="superlinear" hand="#pbs">power</add>` --> processLine
+    - `<handShift new="#pbs"/>` --> processLine, processZone
+    - `<addSpan hand="#pbs" spanTo="#c56-0026.05"/>` --> processLine, processZone (in processed elements, delspan and skipped lines)
   - output:
     - list that consists of consecutive fragments with the same hand
     - list with same amount of elements and hand labels that correspond to fragments
