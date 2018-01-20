@@ -65,7 +65,7 @@
                                 <msItem class="#chapter" n="1">
                                     <locusGrp>
                                         <locus target="#ox-ms_abinger_c56-0011 #ox-ms_abinger_c56-0012"/>
-                                        <locus target="#ox-ms_abinger_c56-0013" toLine="7">all but last 4 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0013" toElement="7">all but last 4 lines</locus>
                                     </locusGrp>
                                     <bibl>
                                         <title>Chapter 1</title>
@@ -74,10 +74,10 @@
                                 <msItem class="#chapter" n="2">
                                     <locusGrp>
                                         <locus target="#ox-ms_abinger_c56-0005 #ox-ms_abinger_c56-0006 #ox-ms_abinger_c56-0007 #ox-ms_abinger_c56-0008"/>
-                                        <locus target="#ox-ms_abinger_c56-0009" toLine="3">first 3 lines</locus>
-                                        <locus target="#ox-ms_abinger_c56-0013" fromLine="8">last 4 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0009" toElement="3">first 3 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0013" fromElement="8">last 4 lines</locus>
                                         <locus target="#ox-ms_abinger_c56-0014"/>
-                                        <locus target="#ox-ms_abinger_c56-0009" fromLine="4">all but first 3 lines</locus>
+                                        <locus target="#ox-ms_abinger_c56-0009" fromElement="4">all but first 3 lines</locus>
                                         <locus target="#ox-ms_abinger_c56-0010"/>
                                         <locus target="#ox-ms_abinger_c56-0015">second half</locus>
                                         <locus target="#ox-ms_abinger_c56-0016"/>

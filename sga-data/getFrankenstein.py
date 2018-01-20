@@ -3,8 +3,7 @@ from lxml import etree
 import io
 import re
 import requests
-
-page_id = "ox-ms_abinger_c56-0050"
+import sys
 
 
 def removeNamespaces(xml_file):
@@ -37,9 +36,12 @@ def removeNamespaces(xml_file):
     return new_file
 
 
-def getPageRoot(page_name):
-    subfolder = "-".join(page_name.split("-")[:-1])
-    file_path = "./{}/{}.xml".format(subfolder, page_name)
+def getPageRoot(page_name, file_type):
+    if file_type == "page":
+        subfolder = "-".join(page_name.split("-")[:-1])
+        file_path = "./{}/{}.xml".format(subfolder, page_name)
+    else:
+        file_path = "./{}.xml".format(page_name)
     page = etree.parse(file_path)
     page = removeNamespaces(page)
     rt = page.getroot()
@@ -49,6 +51,8 @@ def getPageRoot(page_name):
 
 def callDatamuse(word):
     """Uses the datamuse API to find (scores for) words"""
+    global dict_call_counter
+    dict_call_counter += 1
     base_url = "https://api.datamuse.com/words?sp="
     output = requests.get(base_url + word)
     output_list = output.json()
@@ -63,16 +67,96 @@ def callDatamuse(word):
     return score
 
 
+def testWords(processed_text):
+    global print_text
+    global print_text_list
+    global hand_list
+    prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
+    curline_part = re.match(r"[^ ]+", processed_text).group()  # finds consecutive line-initial non-space characters
+    if len(prevline_part) == 1:
+        if re.fullmatch(r"[Ia&0-9]", prevline_part):    # if prevline_part in ["I", "a", "&"]:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += " " + processed_text
+            else:
+                print_text_list.append(" " + processed_text)
+                hand_list.append(hand)
+            print_text += " " + processed_text
+            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+            print("#" + processed_text + "# - F")
+        else:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += processed_text
+            else:
+                print_text_list.append(processed_text)
+                hand_list.append(hand)
+            print_text += processed_text
+            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+            print("#" + processed_text + "# - G")
+    elif curline_part in ["I", "&"]:
+        if hand == hand_list[-1]:
+            print_text_list[-1] += " " + processed_text
+        else:
+            print_text_list.append(" " + processed_text)
+            hand_list.append(hand)
+        print_text += " " + processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+        print("#" + processed_text + "# - H")
+    elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
+        if hand == hand_list[-1]:
+            print_text_list[-1] += processed_text
+        else:
+            print_text_list.append(processed_text)
+            hand_list.append(hand)
+        print_text += processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+        print("#" + processed_text + "# - I")
+    elif len(curline_part) == len(processed_text) == len(previous_addition) == 1 and previous_addition not in [" ", "&", ".", ";", ".", "I"]:  # if the added text and the previously added text both consist of a single letter it is likely to be part of a within-word alteration
+        if hand == hand_list[-1]:
+            print_text_list[-1] += processed_text
+        else:
+            print_text_list.append(processed_text)
+            hand_list.append(hand)
+        print_text += processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+        print("#" + processed_text + "# - I2")
+    else:
+        prevline_part_score = callDatamuse(prevline_part)
+        if len(curline_part) == 1:
+            curline_part_score = 0
+        else:
+            curline_part_score = callDatamuse(curline_part)
+        combined_word = prevline_part + curline_part
+        combined_score = callDatamuse(combined_word)
+        if (prevline_part_score + curline_part_score) / 2 > combined_score:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += " " + processed_text
+            else:
+                print_text_list.append(" " + processed_text)
+                hand_list.append(hand)
+            print_text += " " + processed_text
+            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+            print("#" + processed_text + "# - J")
+        else:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += processed_text
+            else:
+                print_text_list.append(processed_text)
+                hand_list.append(hand)
+            print_text += processed_text
+            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+            print("#" + processed_text + "# - K")
+
+
 def processText(raw_text, no_of_calls, mod_status):
     """Cleans up text."""
     global print_text
-    global dict_call_counter
     global print_text_list
     global hand_list
+    global previous_addition
     if mod_status:  # complex modifications and simple deletions need no extra spaces
-        new_text = re.sub(r"\n *", "", raw_text)  # deals with newlines and spaces of xml structure
+        new_text = re.sub(r"[\n\t] *", "", raw_text)  # deals with newlines and spaces of xml structure
     else:  # simple adds need an extra space for reading text
-        new_text = re.sub(r"\n *", " ", raw_text)
+        new_text = re.sub(r"[\n\t] *", " ", raw_text)
     # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
     if no_of_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
         if print_text[-1] == "-":
@@ -119,31 +203,7 @@ def processText(raw_text, no_of_calls, mod_status):
                 print_text += new_text
                 print("#" + new_text + "# - E")
             else:  # determine whether two parts are words
-                prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
-                prevline_part_score = callDatamuse(prevline_part)
-                curline_part = re.match(r"[^ ]+", new_text).group()  # finds consecutive line-initial non-space characters
-                curline_part_score = callDatamuse(curline_part)
-                combined_word = prevline_part + curline_part
-                combined_score = callDatamuse(combined_word)
-                if (prevline_part_score + curline_part_score) / 2 > combined_score:
-                    if hand == hand_list[-1]:
-                        print_text_list[-1] += " " + new_text
-                    else:
-                        print_text_list.append(" " + new_text)
-                        hand_list.append(hand)
-                    print_text += " " + new_text
-                    print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-                    print("#" + new_text + "# - F")
-                else:
-                    if hand == hand_list[-1]:
-                        print_text_list[-1] += new_text
-                    else:
-                        print_text_list.append(new_text)
-                        hand_list.append(hand)
-                    print_text += new_text
-                    print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-                    print("#" + new_text + "# - G")
-                dict_call_counter += 3
+                testWords(new_text)
     else:
         if print_text != "" and new_text != "":
             if print_text[-1] == " " and new_text[0] == " ":
@@ -154,23 +214,27 @@ def processText(raw_text, no_of_calls, mod_status):
                         print_text_list.append(new_text[1:])
                         hand_list.append(hand)
                     print_text += new_text[1:]
-                    print("#" + new_text + "# - H")
+                    print("#" + new_text + "# - L")
             else:
-                if hand == hand_list[-1]:
-                    print_text_list[-1] += new_text
+                if print_text[-1] != " " and new_text[0] != " ":
+                    testWords(new_text)
                 else:
-                    print_text_list.append(new_text)
-                    hand_list.append(hand)
-                print_text += new_text
-                print("#" + new_text + "# - I")
+                    if hand == hand_list[-1]:
+                        print_text_list[-1] += new_text
+                    else:
+                        print_text_list.append(new_text)
+                        hand_list.append(hand)
+                    print_text += new_text
+                    print("#" + new_text + "# - M")
         else:
             if print_text == "":  # i.e. if it is the first text to be added
                 print_text_list.append(new_text)
                 hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - J")
+                print("#" + new_text + "# - N")
     if new_text in ["", " "]:
         no_of_calls -= 1
+    previous_addition = new_text[:]
     return no_of_calls
 
 
@@ -195,16 +259,23 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                             prev_hand = hand[:]
                             hand = i.get("hand")[1:]
                         process_text_calls += 1
-                        mod = True if "mod" in page_tree.getelementpath(i) else False
+#                        mod = True if "mod" in page_tree.getelementpath(i) else False
+                        mod = False
                         process_text_calls = processText(i.text, process_text_calls, mod)
                         if i.tag == "add" and i.get("hand"):
                             hand = prev_hand[:]
-                    i_parent = i.getparent()
-                    if i_parent.tag == "mod" and i_parent.index(i) == max(loc for loc, val in enumerate(i_parent.getchildren()) if val.tag in allowed_tags):
-                        if i_parent.tail not in [None, "", "\n"]:
-                            process_text_calls += 1
-                            process_text_calls = processText(i_parent.tail, process_text_calls, True)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
-            elif i.tag == "delSpan":  # Breaks out of the line if a deletion spans multiple lines
+#                    if len(i.findall(".//metamark[@function='displacement']")) != 0:  # if there's a displacement metamark in an add tag
+#                        j = i.findall(".//metamark[@function='displacement']")[0]
+#                        if j.get("id") in displ_ids:
+#                            process_text_calls = 0
+#                            displ_id = j.get("id")
+#                            if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
+#                                processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, from_element, to_element)
+#                            else:  # i.e. if metamark (mistakenly?) references a different zone rather than a subzone
+#                                anch_id = "#" + j.get("id")
+#                                if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
+#                                    processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
+            if i.tag == "delSpan":  # Breaks out of the line if a deletion spans multiple lines
                 delspan = True
                 delspan_id = i.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
                 return False
@@ -222,25 +293,43 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                 hand = i.get("new")[1:]
             elif i.tag == "metamark" and (i.get("id") in displ_ids):
                 process_text_calls = 0
-                processZone(zone_type, anchor_id, page_root, page_tree, i.get("id"), displ_ids)
+                displ_id = i.get("id")
+                if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
+                    processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, from_element, to_element)
+#                else:  # i.e. if metamark (mistakenly?) references a different zone rather than a subzone
+#                    anch_id = "#" + i.get("id")
+#                    if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
+#                        processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
             elif i.tag == "anchor":
                 if i.get("id") == displ_end_id:
                     return True
                 anch_id = "#" + i.get("id")
                 if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:  # Checks for anchor in a line and references a different zone
                     process_text_calls = 0
-                    processZone("", anch_id, page_root, page_tree, None, displ_ids)
+                    processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
                 else:
                     new_page_id = "ox-ms_abinger_" + anch_id[1:].split(".")[0]
                     if new_page_id != page_id:  # Checks for referenced zone on different page
-                        new_root, new_tree = getPageRoot(new_page_id)
+                        new_root, new_tree = getPageRoot(new_page_id, "page")
                         if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
                             process_text_calls = 0
-                            processZone("", anch_id, new_root, new_tree, None, displ_ids)
+                            processZone("", anch_id, new_root, new_tree, None, displ_ids, 0, 1000)
                     else:  # i.e. if an anchor is not used for displacement purposes
                         if i.get("id") == handspan_id:
                             hand = prev_hand[:]
-            if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"]:          # Prints text after/between additions that aren't contained within a <mod>
+            if "mod" in page_tree.getelementpath(i) and i.tag != "mod":  # turn into if "mod" is somewhere upstream
+                if i.tail not in [None, "", "\n"]:
+                    process_text_calls += 1
+                    process_text_calls = processText(i.tail, process_text_calls, True)
+                mod_parent = i.getparent()
+                while mod_parent.tag != "mod":
+                    mod_parent = mod_parent.getparent()
+                mod_children = [k for k in mod_parent.iter()]
+                if mod_children.index(i) == (len(mod_children) - 1):  # if val.tag in allowed_tags): outdented so it doesn't just apply to tags which contain reading text
+                    if mod_parent.tail not in [None, "", "\n"]:
+                        process_text_calls += 1
+                        process_text_calls = processText(mod_parent.tail, process_text_calls, True)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+            if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()) and "mod" not in page_tree.getelementpath(i):          # Prints text after/between additions that aren't contained within a <mod> # change final condition: "del" or "mod" cannot be upstream somewhere
                 process_text_calls += 1
                 mod = True if "mod" in page_tree.getelementpath(i) else False
                 process_text_calls = processText(i.tail, process_text_calls, mod)
@@ -248,7 +337,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
     return False
 
 
-def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, displ_ids):
+def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, displ_ids, from_element, to_element):
     global delspan
     global delspan_id
     global hand
@@ -265,7 +354,7 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
             child = child.getparent()
         from_element = zone.index(child)
     else:
-        from_element = 0
+        # from_element = 0  # remove this and add from_element and to_element as parameters
         end_id = None
         displ_ids = []
         for elem in zone:  # changed from zone.iter() to zone to make indexing easier
@@ -279,12 +368,27 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
     for elem in zone:  # changed from zone.iter() to zone to make indexing easier
         if zone_end:
             break
-        if zone.index(elem) >= from_element:  # also add to_element for volume files
+        if zone.index(elem) >= from_element and zone.index(elem) <= to_element:  # also add to_element for volume files
             if displacement_id:
                 if elem.tag == "anchor" and elem.get("id") == end_id:
                     zone_end = True
                     continue
             if delspan:
+                if len(elem.findall(".//delSpan")) != 0:
+                    old_delspan_anchor = zone.findall(".//anchor[@id='{}']".format(delspan_id))[0]
+                    child_node1 = old_delspan_anchor
+                    while child_node1 not in zone:
+                        child_node1 = child_node1.getparent()
+                    old_dspan_anchor_index = zone.index(child_node1)
+                    for dspan in elem.findall(".//delSpan"):
+                        new_delspan_id = dspan.get("spanTo")[1:]
+                        new_delspan_anchor = zone.findall(".//anchor[@id='{}']".format(new_delspan_id))[0]
+                        child_node2 = new_delspan_anchor
+                        while child_node2 not in zone:
+                            child_node2 = child_node2.getparent()
+                        new_dspan_anchor_index = zone.index(child_node2)
+                        if new_dspan_anchor_index > old_dspan_anchor_index:  # if delspan that is initiated in current delspan outlasts current delspan
+                            delspan_id = new_delspan_id[:]
                 if len(elem.findall(".//anchor[@id='{}']".format(delspan_id))) != 0:  # only captures anchors within some other element
                     del_anchor = elem.findall(".//anchor[@id='{}']".format(delspan_id))[0]
                     delspan = False
@@ -329,17 +433,22 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
                 elif elem.tag == "line":
                     zone_end = processLine(zone_type, anchor_id, elem, 0, page_root, page_tree, displ_ids, end_id)
                 elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
-                    processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), displ_ids)
+                    if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
+                        processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), displ_ids, from_element, to_element)
+#                    else:
+#                        anchr_id = "#" + elem.get("id")
+#                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
+#                            processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
                 elif elem.tag == "anchor":       # Checks for anchor that is not in a line and references a different zone; removed following code due to iteration change:  and "line" not in page_tree.getelementpath(elem)
                     anchr_id = "#" + elem.get("id")
                     if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                        processZone("", anchr_id, page_root, page_tree, None, displ_ids)
-                    else:                                                           # Checks for referenced zone on different page
+                        processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
+                    else:      # Checks for referenced zone on different page
                         new_page_id = "ox-ms_abinger_" + anchr_id[1:].split(".")[0]
                         if new_page_id != page_id:
-                            new_root, new_tree = getPageRoot(new_page_id)
+                            new_root, new_tree = getPageRoot(new_page_id, "page")
                             if len(new_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                                processZone("", anchr_id, new_root, new_tree, None, displ_ids)
+                                processZone("", anchr_id, new_root, new_tree, None, displ_ids, 0, 1000)
         else:  # even though these lines are not part of reading text we still want to check them for hand changes
             if len(elem.findall(".//handShift")) != 0:
                 hand = elem.findall(".//handShift")[0].get("new")[1:]
@@ -359,19 +468,53 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
             hand = prev_hand[:]
 
 
-root, tree = getPageRoot(page_id)
-
-delspan = False
-delspan_id = ""
+dict_call_counter = 0
 print_text = ""
 print_text_list = []
 hand_list = []
+delspan = False
+delspan_id = ""
 prev_hand = "mws"  # only used to switch back after an addSpan or add, do not use for handlist
 hand = "mws"
 handspan_id = ""
-dict_call_counter = 0
-processZone("main", "", root, tree, None, [])
-print(print_text)
-print(dict_call_counter)
-print(print_text_list)
-print(hand_list)
+previous_addition = ""
+
+for volume_no in ["i", "ii", "iii"]:
+    volume_id = "ox-frankenstein-volume_" + volume_no
+    vol_root, vol_tree = getPageRoot(volume_id, "volume")
+    chapters = vol_root.findall(".//msItem[@class='#chapter']")
+    for chapter in chapters:
+        chapter_no = chapter.get("n")
+        for locus in chapter.findall(".//locus"):
+            raw_page_ids = locus.get("target").split(" ")
+            page_ids = [i[1:] for i in raw_page_ids]
+            if len(page_ids) == 1:
+                from_element = 0
+                to_element = 1000
+                if locus.get("fromElement"):
+                    from_element = int(locus.get("fromElement")) - 1
+                if locus.get("toElement"):
+                    to_element = int(locus.get("toElement")) - 1
+                page_id = page_ids[0]
+                root, tree = getPageRoot(page_id, "page")
+                processZone("main", "", root, tree, None, [], from_element, to_element)
+            else:
+                for page_id in page_ids:
+                    from_element = 0
+                    to_element = 1000
+                    root, tree = getPageRoot(page_id, "page")
+                    processZone("main", "", root, tree, None, [], from_element, to_element)
+        print(print_text)
+        print(print_text_list)
+        print(hand_list)
+        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, volume_no, chapter_no))
+        if continue_script not in ["y", "Y"]:
+            sys.exit()
+
+# page_id = "ox-ms_abinger_c56-0050"
+# root, tree = getPageRoot(page_id, "page")
+# processZone("main", "", root, tree, None, [])
+# print(print_text)
+# print(dict_call_counter)
+# print(print_text_list)
+# print(hand_list)

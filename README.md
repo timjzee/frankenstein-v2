@@ -1,6 +1,16 @@
 # frankenstein-v2
 
+## Acknowledgements and License information
+- Metadata from Shelley-Godwin Archive: Creative Commons 1.0
+- Text processing: Datamuse API
+
 ## next steps:
+- check attribution accuracy
+- optimize dataMuse calls
+  - word context:
+    - `sp=sametime` has a higher score than the mean of `sp=same` and `sp=time`, but it has a lower score than the mean of `sp=same&rc=time` and `sp=time&lc=same`
+    - maybe even use the word before prevline_part: in 56-0022 the mean score of `sp=be` and `sp=en` is higher than the score of `sp=been`, but when we include the previous word *have* as context, `sp=been&lc=have` has a much higher score than `sp=be&lc=have`
+  - if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (the prevents incorrect separations)
 - add text from `<unclear>` tags
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
@@ -18,13 +28,12 @@
     - ~~list that consists of consecutive fragments with the same hand~~
     - ~~list with same amount of elements and hand labels that correspond to fragments~~
     - .json format
-- Implement limitations in volume files:
+- ~~Implement limitations in volume files:~~
   - ~~finish adding fromLine and toLine attributes in volume files~~
-  - line counter for use with fromLine and toLine attributes
-  - if (line < fromLine or line > toLine) then ignore-line = True
-  - else ignore-line = False
+  - ~~line counter for use with fromLine and toLine attributes~~
 - ~~text within < hi > should not be printed if in < metamark >~~
 - process text:
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
   - handle capitalization, punctuation
+- ~~add support for delspans that are initiated within other delspans~~
