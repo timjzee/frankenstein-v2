@@ -5,6 +5,7 @@
 - Text processing: Datamuse API
 
 ## next steps:
+- ~~support processing of individual pages (for debugging purposes)~~
 - check attribution accuracy
 - optimize dataMuse calls
   - word context:

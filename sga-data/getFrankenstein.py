@@ -1,4 +1,3 @@
-# Test script for a single page
 from lxml import etree
 import io
 import re
@@ -295,7 +294,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                 process_text_calls = 0
                 displ_id = i.get("id")
                 if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
-                    processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, from_element, to_element)
+                    processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, 0, 1000)
 #                else:  # i.e. if metamark (mistakenly?) references a different zone rather than a subzone
 #                    anch_id = "#" + i.get("id")
 #                    if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
@@ -468,6 +467,83 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
             hand = prev_hand[:]
 
 
+def processLocus(locus, match_page):
+    global auto_mode
+    global page_id
+    raw_page_ids = locus.get("target").split(" ")
+    page_ids = [i[1:] for i in raw_page_ids]
+    if len(page_ids) == 1:
+        from_element = 0
+        to_element = 1000
+        if locus.get("fromElement"):
+            from_element = int(locus.get("fromElement")) - 1
+        if locus.get("toElement"):
+            to_element = int(locus.get("toElement")) - 1
+        page_id = page_ids[0]
+        root, tree = getPageRoot(page_id, "page")
+        processZone("main", "", root, tree, None, [], from_element, to_element)
+    else:
+        for page_id in page_ids:
+            if not auto_mode:
+                if page_id == match_page:
+                    from_element = 0
+                    to_element = 1000
+                    root, tree = getPageRoot(page_id, "page")
+                    processZone("main", "", root, tree, None, [], from_element, to_element)
+            else:
+                from_element = 0
+                to_element = 1000
+                root, tree = getPageRoot(page_id, "page")
+                processZone("main", "", root, tree, None, [], from_element, to_element)
+
+
+def processChapter(chap, vol_no):
+    global auto_mode
+    chapter_no = chap.get("n")
+    if not auto_mode:
+        raw_p_ids = []
+        for locus in chap.findall(".//locus"):
+            raw_p_ids.extend(locus.get("target").split(" "))
+        p_ids = [i[-7:] for i in raw_p_ids]
+        p_id = ""
+        while p_id not in p_ids:
+            p_id = input("Chapter {} contains the following pages:\n{}\nWhich page? ".format(chapter_no, p_ids))
+        for loc in chap.findall(".//locus"):
+            if p_id in loc.get("target"):
+                match_id = "ox-ms_abinger_c" + p_id
+                processLocus(loc, match_id)
+        print(print_text)
+        print(print_text_list)
+        print(hand_list)
+        print("\nNumber of Datamuse API calls:", dict_call_counter)
+    else:
+        for loc in chap.findall(".//locus"):
+            processLocus(loc, "")
+        print(print_text)
+        print(print_text_list)
+        print(hand_list)
+        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
+        if continue_script not in ["y", "Y"]:
+            sys.exit()
+
+
+def processVolume(vol_no):
+    global auto_mode
+    volume_id = "ox-frankenstein-volume_" + vol_no
+    vol_root, vol_tree = getPageRoot(volume_id, "volume")
+    chapters = vol_root.findall(".//msItem[@class='#chapter']")
+    if not auto_mode:
+        allowed_chaps = [ch.get("n") for ch in chapters]
+        chap_no = ""
+        while chap_no not in allowed_chaps:
+            chap_no = input("Volume {} contains the following chapters:\n{}\nWhich chapter? ".format(vol_no, allowed_chaps))
+        chapter = chapters[allowed_chaps.index(chap_no)]
+        processChapter(chapter, vol_no)
+    else:
+        for chapter in chapters:
+            processChapter(chapter, vol_no)
+
+
 dict_call_counter = 0
 print_text = ""
 print_text_list = []
@@ -479,42 +555,12 @@ hand = "mws"
 handspan_id = ""
 previous_addition = ""
 
-for volume_no in ["i", "ii", "iii"]:
-    volume_id = "ox-frankenstein-volume_" + volume_no
-    vol_root, vol_tree = getPageRoot(volume_id, "volume")
-    chapters = vol_root.findall(".//msItem[@class='#chapter']")
-    for chapter in chapters:
-        chapter_no = chapter.get("n")
-        for locus in chapter.findall(".//locus"):
-            raw_page_ids = locus.get("target").split(" ")
-            page_ids = [i[1:] for i in raw_page_ids]
-            if len(page_ids) == 1:
-                from_element = 0
-                to_element = 1000
-                if locus.get("fromElement"):
-                    from_element = int(locus.get("fromElement")) - 1
-                if locus.get("toElement"):
-                    to_element = int(locus.get("toElement")) - 1
-                page_id = page_ids[0]
-                root, tree = getPageRoot(page_id, "page")
-                processZone("main", "", root, tree, None, [], from_element, to_element)
-            else:
-                for page_id in page_ids:
-                    from_element = 0
-                    to_element = 1000
-                    root, tree = getPageRoot(page_id, "page")
-                    processZone("main", "", root, tree, None, [], from_element, to_element)
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, volume_no, chapter_no))
-        if continue_script not in ["y", "Y"]:
-            sys.exit()
-
-# page_id = "ox-ms_abinger_c56-0050"
-# root, tree = getPageRoot(page_id, "page")
-# processZone("main", "", root, tree, None, [])
-# print(print_text)
-# print(dict_call_counter)
-# print(print_text_list)
-# print(hand_list)
+auto_mode = True if input("Auto mode? (y/n) ") in ["Y", "y"] else False
+if not auto_mode:
+    volume_no = ""
+    while volume_no not in ["i", "ii", "iii"]:
+        volume_no = input("Which volume? (i/ii/iii) ")
+    processVolume(volume_no)
+else:
+    for volume_no in ["i", "ii", "iii"]:
+        processVolume(volume_no)
