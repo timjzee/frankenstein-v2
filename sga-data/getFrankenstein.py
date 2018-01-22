@@ -52,18 +52,21 @@ def callDatamuse(word):
     """Uses the datamuse API to find (scores for) words"""
     global dict_call_counter
     dict_call_counter += 1
-    base_url = "https://api.datamuse.com/words?sp="
-    output = requests.get(base_url + word)
+    output = requests.get("https://api.datamuse.com/words?sp={}&md=f".format(word))
     output_list = output.json()
     if len(output_list) != 0:
         matched_words = [i["word"] for i in output_list]
         if word.lower() not in matched_words:  # takes into account when datamuse returns a number of words or a different 'related' word
             score = 0
+            freq = 0
         else:
             score = output_list[matched_words.index(word.lower())]["score"]
+            freq = float(output_list[matched_words.index(word.lower())]["tags"][0][2:])
     else:
         score = 0
-    return score
+        freq = 0
+    final_score = (score + freq) / 2
+    return final_score
 
 
 def testWords(processed_text):
@@ -100,7 +103,7 @@ def testWords(processed_text):
         print_text += " " + processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
         print("#" + processed_text + "# - H")
-    elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
+    elif curline_part in [".", ",", "?", ":", "!", ";"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
         else:
@@ -109,6 +112,15 @@ def testWords(processed_text):
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
         print("#" + processed_text + "# - I")
+    elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
+        if hand == hand_list[-1]:
+            print_text_list[-1] += processed_text
+        else:
+            print_text_list.append(processed_text)
+            hand_list.append(hand)
+        print_text += processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+        print("#" + processed_text + "# - J")
     elif len(curline_part) == len(processed_text) == len(previous_addition) == 1 and previous_addition not in [" ", "&", ".", ";", ".", "I"]:  # if the added text and the previously added text both consist of a single letter it is likely to be part of a within-word alteration
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -117,15 +129,20 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - I2")
+        print("#" + processed_text + "# - K")
     else:
         prevline_part_score = callDatamuse(prevline_part)
+        combined_word = prevline_part + curline_part
         if len(curline_part) == 1:
             curline_part_score = 0
+            combined_score = callDatamuse(combined_word)
         else:
-            curline_part_score = callDatamuse(curline_part)
-        combined_word = prevline_part + curline_part
-        combined_score = callDatamuse(combined_word)
+            if len(curline_part) > 1 and curline_part[-1] in [".", ",", ":", ";", "!", "?"]:  # if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)
+                curline_part_score = callDatamuse(curline_part[:-1])
+                combined_score = callDatamuse(combined_word[:-1])
+            else:
+                curline_part_score = callDatamuse(curline_part)
+                combined_score = callDatamuse(combined_word)
         if (prevline_part_score + curline_part_score) / 2 > combined_score:
             if hand == hand_list[-1]:
                 print_text_list[-1] += " " + processed_text
@@ -134,7 +151,7 @@ def testWords(processed_text):
                 hand_list.append(hand)
             print_text += " " + processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - J")
+            print("#" + processed_text + "# - L")
         else:
             if hand == hand_list[-1]:
                 print_text_list[-1] += processed_text
@@ -143,7 +160,7 @@ def testWords(processed_text):
                 hand_list.append(hand)
             print_text += processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - K")
+            print("#" + processed_text + "# - M")
 
 
 def processText(raw_text, no_of_calls, mod_status):
@@ -213,7 +230,7 @@ def processText(raw_text, no_of_calls, mod_status):
                         print_text_list.append(new_text[1:])
                         hand_list.append(hand)
                     print_text += new_text[1:]
-                    print("#" + new_text + "# - L")
+                    print("#" + new_text + "# - N")
             else:
                 if print_text[-1] != " " and new_text[0] != " ":
                     testWords(new_text)
@@ -224,13 +241,13 @@ def processText(raw_text, no_of_calls, mod_status):
                         print_text_list.append(new_text)
                         hand_list.append(hand)
                     print_text += new_text
-                    print("#" + new_text + "# - M")
+                    print("#" + new_text + "# - O")
         else:
             if print_text == "":  # i.e. if it is the first text to be added
                 print_text_list.append(new_text)
                 hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - N")
+                print("#" + new_text + "# - P")
     if new_text in ["", " "]:
         no_of_calls -= 1
     previous_addition = new_text[:]

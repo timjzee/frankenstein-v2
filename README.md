@@ -8,10 +8,11 @@
 - ~~support processing of individual pages (for debugging purposes)~~
 - check attribution accuracy
 - optimize dataMuse calls
+  - ~~In 56-0028 *they* is split up into *the* and *y* due to higher score of *the* compared to *they*. By incorporating frequency in algorithm this can be prevented: `sp=they&md=f` > `sp=the&md=f` & `sp=y&md=f`~~
   - word context:
     - `sp=sametime` has a higher score than the mean of `sp=same` and `sp=time`, but it has a lower score than the mean of `sp=same&rc=time` and `sp=time&lc=same`
     - maybe even use the word before prevline_part: in 56-0022 the mean score of `sp=be` and `sp=en` is higher than the score of `sp=been`, but when we include the previous word *have* as context, `sp=been&lc=have` has a much higher score than `sp=be&lc=have`
-  - if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (the prevents incorrect separations)
+  - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
 - add text from `<unclear>` tags
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
