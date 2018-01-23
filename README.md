@@ -6,6 +6,15 @@
 
 ## next steps:
 - ~~support processing of individual pages (for debugging purposes)~~
+- maybe we need a double-checking mechanism after two consecutive JOIN/SEPARATE operations where the first operation's curline_part corresponds to the second operation's prevline_part
+  - e.g. in 56-0111 app-SEP-r-JOI-oached --> *app roached*, and
+  - e.g. in 56-0111 a-SEP-n-JOI-obscure --> *a nobscure* we check all possibilities once more
+  - implementation:
+    - register whether previous text also required a JOIN/SEPARATE operation in processText using a global variable
+    - if so, check whether there are any whitespaces in previous_addition
+    - if not, use regex to find the 'word' that precedes previous_addition in print_text
+    - get score for all combos: "a", "b", "c", "ab", "bc", "abc"
+- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001
 - check attribution accuracy
 - optimize dataMuse calls
   - ~~In 56-0028 *they* is split up into *the* and *y* due to higher score of *the* compared to *they*. By incorporating frequency in algorithm this can be prevented: `sp=they&md=f` > `sp=the&md=f` & `sp=y&md=f`~~
@@ -13,7 +22,7 @@
     - `sp=sametime` has a higher score than the mean of `sp=same` and `sp=time`, but it has a lower score than the mean of `sp=same&rc=time` and `sp=time&lc=same`
     - maybe even use the word before prevline_part: in 56-0022 the mean score of `sp=be` and `sp=en` is higher than the score of `sp=been`, but when we include the previous word *have* as context, `sp=been&lc=have` has a much higher score than `sp=be&lc=have`
   - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
-- add text from `<unclear>` tags
+- add text from `<unclear>` and `<damage>` (e.g. 57-0111) tags
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
