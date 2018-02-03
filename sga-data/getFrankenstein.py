@@ -73,9 +73,49 @@ def testWords(processed_text):
     global print_text
     global print_text_list
     global hand_list
+    global prev_add_processed
     prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
     curline_part = re.match(r"[^ ]+", processed_text).group()  # finds consecutive line-initial non-space characters
-    if len(prevline_part) == 1:
+    if prev_add_processed and (" " not in previous_addition):
+        part_a = re.search(r"[^ ]+(?= *{}$)".format(previous_addition), print_text).group()
+        score_a = callDatamuse(part_a)
+        score_b = callDatamuse(previous_addition)
+        score_c = callDatamuse(curline_part)
+        score_ab = callDatamuse(part_a + previous_addition)
+        score_bc = callDatamuse(previous_addition + curline_part)
+        score_abc = callDatamuse(part_a + previous_addition + curline_part)
+        combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
+        combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+        combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
+        combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+        best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+        print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
+        print(best_combo, "REVISION")
+        match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
+        print_text = re.sub(r"{}$".format(match_str), best_combo[1], print_text, count=1)
+        if " " in match_str:
+            if "a_b" in best_combo[2]:
+                pass
+            elif "ab" in best_combo[2]:
+                print_text_list[-1] = re.sub(r" +{}$".format(previous_addition), previous_addition, print_text_list[-1], count=1)
+        else:
+            if "a_b" in best_combo[2]:
+                print_text_list[-1] = re.sub(r"{}$".format(previous_addition), " " + previous_addition, print_text_list[-1], count=1)
+            elif "ab" in best_combo[2]:
+                pass
+        if "b_c" in best_combo[2]:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += " " + processed_text
+            else:
+                print_text_list.append(" " + processed_text)
+                hand_list.append(hand)
+        else:
+            if hand == hand_list[-1]:
+                print_text_list[-1] += processed_text
+            else:
+                print_text_list.append(processed_text)
+                hand_list.append(hand)
+    elif len(prevline_part) == 1:
         if re.fullmatch(r"[Ia&0-9]", prevline_part):    # if prevline_part in ["I", "a", "&"]:
             if hand == hand_list[-1]:
                 print_text_list[-1] += " " + processed_text
@@ -161,6 +201,7 @@ def testWords(processed_text):
             print_text += processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
             print("#" + processed_text + "# - M")
+    prev_add_processed = True
 
 
 def processText(raw_text, no_of_calls, mod_status):
@@ -169,6 +210,7 @@ def processText(raw_text, no_of_calls, mod_status):
     global print_text_list
     global hand_list
     global previous_addition
+    global prev_add_processed
     if mod_status:  # complex modifications and simple deletions need no extra spaces
         new_text = re.sub(r"[\n\t] *", "", raw_text)  # deals with newlines and spaces of xml structure
     else:  # simple adds need an extra space for reading text
@@ -176,6 +218,7 @@ def processText(raw_text, no_of_calls, mod_status):
     # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
     if no_of_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
         if print_text[-1] == "-":
+            prev_add_processed = False
             if hand == hand_list[-1]:
                 print_text_list[-1] = print_text_list[-1][:-1] + new_text
             else:
@@ -185,6 +228,7 @@ def processText(raw_text, no_of_calls, mod_status):
             print_text = print_text[:-1] + new_text
             print("#" + new_text + "# - A")
         elif print_text[-1] == " ":
+            prev_add_processed = False
             if hand == hand_list[-1]:
                 print_text_list[-1] += new_text
             else:
@@ -193,6 +237,7 @@ def processText(raw_text, no_of_calls, mod_status):
             print_text += new_text
             print("#" + new_text + "# - B")
         elif print_text[-1] in [".", ",", "!", "?", ":", ";", '"']:
+            prev_add_processed = False
             if new_text[0] == " ":
                 if hand == hand_list[-1]:
                     print_text_list[-1] += new_text
@@ -211,6 +256,7 @@ def processText(raw_text, no_of_calls, mod_status):
                 print("#" + new_text + "# - D")
         else:
             if new_text[0] == " ":
+                prev_add_processed = False
                 if hand == hand_list[-1]:
                     print_text_list[-1] += new_text
                 else:
@@ -224,6 +270,7 @@ def processText(raw_text, no_of_calls, mod_status):
         if print_text != "" and new_text != "":
             if print_text[-1] == " " and new_text[0] == " ":
                 if new_text[1:] != "":
+                    prev_add_processed = False
                     if hand == hand_list[-1]:
                         print_text_list[-1] += new_text[1:]
                     else:
@@ -235,6 +282,7 @@ def processText(raw_text, no_of_calls, mod_status):
                 if print_text[-1] != " " and new_text[0] != " ":
                     testWords(new_text)
                 else:
+                    prev_add_processed = False
                     if hand == hand_list[-1]:
                         print_text_list[-1] += new_text
                     else:
@@ -244,13 +292,15 @@ def processText(raw_text, no_of_calls, mod_status):
                     print("#" + new_text + "# - O")
         else:
             if print_text == "":  # i.e. if it is the first text to be added
+                prev_add_processed = False
                 print_text_list.append(new_text)
                 hand_list.append(hand)
                 print_text += new_text
                 print("#" + new_text + "# - P")
     if new_text in ["", " "]:
         no_of_calls -= 1
-    previous_addition = new_text[:]
+    if new_text != "":
+        previous_addition = new_text[:]
     return no_of_calls
 
 
@@ -571,6 +621,7 @@ prev_hand = "mws"  # only used to switch back after an addSpan or add, do not us
 hand = "mws"
 handspan_id = ""
 previous_addition = ""
+prev_add_processed = False
 
 auto_mode = True if input("Auto mode? (y/n) ") in ["Y", "y"] else False
 if not auto_mode:

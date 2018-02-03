@@ -4,16 +4,17 @@
 - Metadata from Shelley-Godwin Archive: Creative Commons 1.0
 - Text processing: Datamuse API
 
-## next steps:
+## Next steps:
 - ~~support processing of individual pages (for debugging purposes)~~
 - maybe we need a double-checking mechanism after two consecutive JOIN/SEPARATE operations where the first operation's curline_part corresponds to the second operation's prevline_part
-  - e.g. in 56-0111 app-SEP-r-JOI-oached --> *app roached*, and
-  - e.g. in 56-0111 a-SEP-n-JOI-obscure --> *a nobscure* we check all possibilities once more
-  - implementation:
-    - register whether previous text also required a JOIN/SEPARATE operation in processText using a global variable
-    - if so, check whether there are any whitespaces in previous_addition
-    - if not, use regex to find the 'word' that precedes previous_addition in print_text
-    - get score for all combos: "a", "b", "c", "ab", "bc", "abc"
+  - ~~e.g. in 56-0111 app-SEP-r-JOI-oached --> *app roached*, and~~
+  - ~~e.g. in 56-0111 a-SEP-n-JOI-obscure --> *a nobscure* we check all possibilities once more~~
+  - ~~implementation:~~
+    - ~~register whether previous text also required a JOIN/SEPARATE operation in processText using a global variable~~
+    - ~~if so, check whether there are any whitespaces in previous_addition~~
+    - ~~if not, use regex to find the 'word' that precedes previous_addition in print_text~~
+    - ~~get score for all combos: "a", "b", "c", "ab", "bc", "abc"~~
+  - needs more testing
 - printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001
 - check attribution accuracy
 - optimize dataMuse calls
