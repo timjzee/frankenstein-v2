@@ -5,6 +5,14 @@
 - Text processing: Datamuse API
 
 ## Next steps:
+- add support for subzones from other pages: e.g. `<anchor xml:id="c56-0089.01"/>` in 56-0088 refers to `<addSpan corresp="#c56-0089.01" spanTo="#c56-0089.02"/>` in 56-0089
+- get latest page files from SGA repo
+- process text:
+  - ~~remove redundant newlines, spaces~~
+  - ~~handle EOL hyphens~~
+  - handle capitalization, punctuation
+    - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
+    - necessary for POS tagging
 - ~~support processing of individual pages (for debugging purposes)~~
 - maybe we need a double-checking mechanism after two consecutive JOIN/SEPARATE operations where the first operation's curline_part corresponds to the second operation's prevline_part
   - ~~e.g. in 56-0111 app-SEP-r-JOI-oached --> *app roached*, and~~
@@ -14,16 +22,21 @@
     - ~~if so, check whether there are any whitespaces in previous_addition~~
     - ~~if not, use regex to find the 'word' that precedes previous_addition in print_text~~
     - ~~get score for all combos: "a", "b", "c", "ab", "bc", "abc"~~
-  - needs more testing
-- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001
+  - needs more testing / optimization / heuristics
+    - ~~if the abc-option has a score higher than a certain threshold, it should always be chosen, e.g. in 56-0036 *on* + *c* + *e* should become *once* rather than *on ce*~~
+    - handle punctuation marks
+    - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse).
+    - find heuristic that turns *have* + *g* + *one* into *have gone* rather than *have g one* in 56-0032
+- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags)
 - check attribution accuracy
 - optimize dataMuse calls
+  - word definitions perhaps use `&md=d` to only give scores > 0 to words which have a definition
   - ~~In 56-0028 *they* is split up into *the* and *y* due to higher score of *the* compared to *they*. By incorporating frequency in algorithm this can be prevented: `sp=they&md=f` > `sp=the&md=f` & `sp=y&md=f`~~
   - word context:
     - `sp=sametime` has a higher score than the mean of `sp=same` and `sp=time`, but it has a lower score than the mean of `sp=same&rc=time` and `sp=time&lc=same`
     - maybe even use the word before prevline_part: in 56-0022 the mean score of `sp=be` and `sp=en` is higher than the score of `sp=been`, but when we include the previous word *have* as context, `sp=been&lc=have` has a much higher score than `sp=be&lc=have`
   - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
-- add text from `<unclear>` and `<damage>` (e.g. 57-0111) tags
+- ~~add text from `<unclear>` and `<damage>` (e.g. 57-0111)~~ and `<retrace>` (e.g. 57-0013) tags
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
@@ -34,7 +47,7 @@
 - implement hand attribution
   - ~~Types:~~
     - ~~`<add place="superlinear" hand="#pbs">power</add>` --> processLine~~
-    - ~~`<handShift new="#pbs"/>` --> processLine, processZone~~
+    - ~~`<handShift new="#pbs"/>` e.g. in 58-0053 --> processLine, processZone~~
     - ~~`<addSpan hand="#pbs" spanTo="#c56-0026.05"/>` --> processLine, processZone (in processed elements, delspan and skipped lines)~~
   - output:
     - ~~list that consists of consecutive fragments with the same hand~~
@@ -44,8 +57,8 @@
   - ~~finish adding fromLine and toLine attributes in volume files~~
   - ~~line counter for use with fromLine and toLine attributes~~
 - ~~text within < hi > should not be printed if in < metamark >~~
-- process text:
-  - ~~remove redundant newlines, spaces~~
-  - ~~handle EOL hyphens~~
-  - handle capitalization, punctuation
 - ~~add support for delspans that are initiated within other delspans~~
+- processLine should probably refactored so it differentiates between different levels of tags, but then we need a solution for tail text
+- Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
+  - E.g. *their experience & to feelings one another* in 57-0019
+  - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103~~ '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'

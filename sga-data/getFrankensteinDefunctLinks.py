@@ -1,8 +1,5 @@
 from lxml import etree
 import io
-import re
-import requests
-import sys
 import random
 
 
@@ -49,264 +46,9 @@ def getPageRoot(page_name, file_type):
     return rt, tr
 
 
-def callDatamuse(word):
-    """Uses the datamuse API to find (scores for) words"""
-    global dict_call_counter
-    dict_call_counter += 1
-    output = requests.get("https://api.datamuse.com/words?sp={}&md=f".format(word))
-    output_list = output.json()
-    if len(output_list) != 0:
-        matched_words = [i["word"] for i in output_list]
-        if word.lower() not in matched_words:  # takes into account when datamuse returns a number of words or a different 'related' word
-            score = 0
-            freq = 0
-        else:
-            score = output_list[matched_words.index(word.lower())]["score"]
-            freq = float(output_list[matched_words.index(word.lower())]["tags"][0][2:])
-    else:
-        score = 0
-        freq = 0
-    final_score = (score + freq) / 2
-    return final_score
-
-
-def testWords(processed_text):
-    global print_text
-    global print_text_list
-    global hand_list
-    global prev_add_processed
-    prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
-    curline_part = re.match(r"[^ ]+", processed_text).group()  # finds consecutive line-initial non-space characters
-    if prev_add_processed and (" " not in previous_addition):
-        part_a = re.search(r"[^ ]+(?= *{}$)".format(previous_addition), print_text).group()
-        score_a = callDatamuse(part_a)
-        score_b = callDatamuse(previous_addition)
-        score_c = callDatamuse(curline_part)
-        score_ab = callDatamuse(part_a + previous_addition)
-        score_bc = callDatamuse(previous_addition + curline_part)
-        score_abc = callDatamuse(part_a + previous_addition + curline_part)
-        combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
-        combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-        combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
-        combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
-        if combo_abc[0] > 0:
-            best_combo = combo_abc
-        else:
-            best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
-        print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
-        print(best_combo, "REVISION")
-        match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
-        print_text = re.sub(r"{}$".format(match_str), best_combo[1], print_text, count=1)
-        if " " in match_str:
-            if "a_b" in best_combo[2]:
-                pass
-            elif "ab" in best_combo[2]:
-                print_text_list[-1] = re.sub(r" +{}$".format(previous_addition), previous_addition, print_text_list[-1], count=1)
-        else:
-            if "a_b" in best_combo[2]:
-                print_text_list[-1] = re.sub(r"{}$".format(previous_addition), " " + previous_addition, print_text_list[-1], count=1)
-            elif "ab" in best_combo[2]:
-                pass
-        if "b_c" in best_combo[2]:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += " " + processed_text
-            else:
-                print_text_list.append(" " + processed_text)
-                hand_list.append(hand)
-        else:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += processed_text
-            else:
-                print_text_list.append(processed_text)
-                hand_list.append(hand)
-    elif len(prevline_part) == 1:
-        if re.fullmatch(r"[Ia&0-9]", prevline_part):    # if prevline_part in ["I", "a", "&"]:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += " " + processed_text
-            else:
-                print_text_list.append(" " + processed_text)
-                hand_list.append(hand)
-            print_text += " " + processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - F")
-        else:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += processed_text
-            else:
-                print_text_list.append(processed_text)
-                hand_list.append(hand)
-            print_text += processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - G")
-    elif curline_part in ["I", "&"]:
-        if hand == hand_list[-1]:
-            print_text_list[-1] += " " + processed_text
-        else:
-            print_text_list.append(" " + processed_text)
-            hand_list.append(hand)
-        print_text += " " + processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-        print("#" + processed_text + "# - H")
-    elif curline_part in [".", ",", "?", ":", "!", ";"]:
-        if hand == hand_list[-1]:
-            print_text_list[-1] += processed_text
-        else:
-            print_text_list.append(processed_text)
-            hand_list.append(hand)
-        print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - I")
-    elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
-        if hand == hand_list[-1]:
-            print_text_list[-1] += processed_text
-        else:
-            print_text_list.append(processed_text)
-            hand_list.append(hand)
-        print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - J")
-    elif len(curline_part) == len(processed_text) == len(previous_addition) == 1 and previous_addition not in [" ", "&", ".", ";", ".", "I"]:  # if the added text and the previously added text both consist of a single letter it is likely to be part of a within-word alteration
-        if hand == hand_list[-1]:
-            print_text_list[-1] += processed_text
-        else:
-            print_text_list.append(processed_text)
-            hand_list.append(hand)
-        print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - K")
-    else:
-        prevline_part_score = callDatamuse(prevline_part)
-        combined_word = prevline_part + curline_part
-        if len(curline_part) == 1:
-            curline_part_score = 0
-            combined_score = callDatamuse(combined_word)
-        else:
-            if len(curline_part) > 1 and curline_part[-1] in [".", ",", ":", ";", "!", "?"]:  # if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)
-                curline_part_score = callDatamuse(curline_part[:-1])
-                combined_score = callDatamuse(combined_word[:-1])
-            else:
-                curline_part_score = callDatamuse(curline_part)
-                combined_score = callDatamuse(combined_word)
-        if (prevline_part_score + curline_part_score) / 2 > combined_score:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += " " + processed_text
-            else:
-                print_text_list.append(" " + processed_text)
-                hand_list.append(hand)
-            print_text += " " + processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - L")
-        else:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += processed_text
-            else:
-                print_text_list.append(processed_text)
-                hand_list.append(hand)
-            print_text += processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - M")
-    prev_add_processed = True
-
-
 def processText(raw_text, no_of_calls, mod_status):
     """Cleans up text."""
-    global print_text
-    global print_text_list
-    global hand_list
-    global previous_addition
-    global prev_add_processed
-    if mod_status:  # complex modifications and simple deletions need no extra spaces
-        new_text = re.sub(r"[\n\t] *", "", raw_text)  # deals with newlines and spaces of xml structure
-    else:  # simple adds need an extra space for reading text
-        new_text = re.sub(r"[\n\t] *", " ", raw_text)
-    # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
-    if no_of_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
-        if print_text[-1] == "-":
-            prev_add_processed = False
-            if hand == hand_list[-1]:
-                print_text_list[-1] = print_text_list[-1][:-1] + new_text
-            else:
-                print_text_list[-1] = print_text_list[-1][:-1]
-                print_text_list.append(new_text)
-                hand_list.append(hand)
-            print_text = print_text[:-1] + new_text
-            print("#" + new_text + "# - A")
-        elif print_text[-1] == " ":
-            prev_add_processed = False
-            if hand == hand_list[-1]:
-                print_text_list[-1] += new_text
-            else:
-                print_text_list.append(new_text)
-                hand_list.append(hand)
-            print_text += new_text
-            print("#" + new_text + "# - B")
-        elif print_text[-1] in [".", ",", "!", "?", ":", ";", '"']:
-            prev_add_processed = False
-            if new_text[0] == " ":
-                if hand == hand_list[-1]:
-                    print_text_list[-1] += new_text
-                else:
-                    print_text_list.append(new_text)
-                    hand_list.append(hand)
-                print_text += new_text
-                print("#" + new_text + "# - C")
-            else:
-                if hand == hand_list[-1]:
-                    print_text_list[-1] += " " + new_text
-                else:
-                    print_text_list.append(" " + new_text)
-                    hand_list.append(hand)
-                print_text += " " + new_text
-                print("#" + new_text + "# - D")
-        else:
-            if new_text[0] == " ":
-                prev_add_processed = False
-                if hand == hand_list[-1]:
-                    print_text_list[-1] += new_text
-                else:
-                    print_text_list.append(new_text)
-                    hand_list.append(hand)
-                print_text += new_text
-                print("#" + new_text + "# - E")
-            else:  # determine whether two parts are words
-                testWords(new_text)
-    else:
-        if print_text != "" and new_text != "":
-            if print_text[-1] == " " and new_text[0] == " ":
-                if new_text[1:] != "":
-                    prev_add_processed = False
-                    if hand == hand_list[-1]:
-                        print_text_list[-1] += new_text[1:]
-                    else:
-                        print_text_list.append(new_text[1:])
-                        hand_list.append(hand)
-                    print_text += new_text[1:]
-                    print("#" + new_text + "# - N")
-            else:
-                if print_text[-1] != " " and new_text[0] != " ":
-                    testWords(new_text)
-                else:
-                    if new_text != " ":
-                        prev_add_processed = False
-                        if hand == hand_list[-1]:
-                            print_text_list[-1] += new_text
-                        else:
-                            print_text_list.append(new_text)
-                            hand_list.append(hand)
-                        print_text += new_text
-                        print("#" + new_text + "# - O")
-        else:
-            if print_text == "":  # i.e. if it is the first text to be added
-                prev_add_processed = False
-                print_text_list.append(new_text)
-                hand_list.append(hand)
-                print_text += new_text
-                print("#" + new_text + "# - P")
-    if new_text in ["", " "]:
-        no_of_calls -= 1
-    if new_text != "":
-        previous_addition = new_text[:]
-    return no_of_calls
+    return 2
 
 
 def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_tree, displ_ids, displ_end_id):
@@ -315,6 +57,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
     global hand
     global prev_hand
     global handspan_id
+    global problematic_links
     process_text_calls = 0
     if line_element.text not in [None, "", "\n"] and from_index == 0:
         process_text_calls += 1
@@ -367,7 +110,9 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                 displ_id = i.get("id")
                 if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
                     processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, 0, 1000)
-#                else:  # i.e. if metamark (mistakenly?) references a different zone rather than a subzone
+                else:  # i.e. if metamark (mistakenly?) references a different zone rather than a subzone
+                    print(i, "in", page_id)
+                    problematic_links.append(page_id)
 #                    anch_id = "#" + i.get("id")
 #                    if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
 #                        processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
@@ -414,6 +159,7 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
     global hand
     global prev_hand
     global handspan_id
+    global problematic_links
     zone_att = "type" if zone_type == "main" else "corresp"
     att_value = "main" if zone_att == "type" else anchor_id
     zone = page_root.xpath("//zone[@{}='{}']".format(zone_att, att_value))[0]
@@ -507,7 +253,9 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
                     elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
                         if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
                             processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), displ_ids, from_element, to_element)
-    #                    else:
+                        else:
+                            print(elem, "in", page_id)
+                            problematic_links.append(page_id)
     #                        anchr_id = "#" + elem.get("id")
     #                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
     #                            processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
@@ -553,6 +301,7 @@ def processLocus(locus, match_page):
         if locus.get("toElement"):
             to_element = int(locus.get("toElement")) - 1
         page_id = page_ids[0]
+        print(page_id)
         root, tree = getPageRoot(page_id, "page")
         processZone("main", "", root, tree, None, [], from_element, to_element)
     else:
@@ -566,6 +315,7 @@ def processLocus(locus, match_page):
             else:
                 from_element = 0
                 to_element = 1000
+                print(page_id)
                 root, tree = getPageRoot(page_id, "page")
                 processZone("main", "", root, tree, None, [], from_element, to_element)
 
@@ -596,12 +346,12 @@ def processChapter(chap, vol_no):
     else:
         for loc in chap.findall(".//locus"):
             processLocus(loc, "")
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
-        if continue_script not in ["y", "Y"]:
-            sys.exit()
+#        print(print_text)
+#        print(print_text_list)
+#        print(hand_list)
+#        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
+#        if continue_script not in ["y", "Y"]:
+#            sys.exit()
 
 
 def processVolume(vol_no):
@@ -636,6 +386,7 @@ hand = "mws"
 handspan_id = ""
 previous_addition = ""
 prev_add_processed = False
+problematic_links = []
 
 mode_input = ""
 while mode_input not in ["auto", "a", "A", "manual", "m", "M", "random", "r", "R"]:
@@ -653,3 +404,5 @@ if not auto_mode:
 else:
     for volume_no in ["i", "ii", "iii"]:
         processVolume(volume_no)
+
+print([i[15:] for i in problematic_links])
