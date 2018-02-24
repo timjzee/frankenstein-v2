@@ -385,6 +385,16 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                         if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
                             process_text_calls = 0
                             processZone("", anch_id, new_root, new_tree, None, displ_ids, 0, 1000)
+                        elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anch_id))) != 0:
+                            new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anch_id))[0]
+                            addspan_parent = new_addspan.getparent()
+                            while addspan_parent.tag != "zone":  # get parent zone
+                                addspan_parent = addspan_parent.getparent()
+                            new_zone_type = addspan_parent.get("type")
+                            if new_zone_type != "main":
+                                processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anch_id[1:], displ_ids, 0, 1000)  # by passing a displacement_id, processZone will get the end_id
+                            else:
+                                processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], displ_ids, 0, 1000)
                     else:  # i.e. if an anchor is not used for displacement purposes
                         if i.get("id") == handspan_id:
                             hand = prev_hand[:]
@@ -515,12 +525,22 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
                         anchr_id = "#" + elem.get("id")
                         if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
                             processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
-                        else:      # Checks for referenced zone on different page
+                        else:      # Checks for referenced (sub)zone on different page
                             new_page_id = "ox-ms_abinger_" + anchr_id[1:].split(".")[0]
                             if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:
                                 new_root, new_tree = getPageRoot(new_page_id, "page")
                                 if len(new_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
                                     processZone("", anchr_id, new_root, new_tree, None, displ_ids, 0, 1000)
+                                elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))) != 0:
+                                    new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))[0]
+                                    addspan_parent = new_addspan.getparent()
+                                    while addspan_parent.tag != "zone":  # get parent zone
+                                        addspan_parent = addspan_parent.getparent()
+                                    new_zone_type = addspan_parent.get("type")
+                                    if new_zone_type != "main":
+                                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anchr_id[1:], displ_ids, 0, 1000)  # by passing a displacement_id, processZone will get the end_id
+                                    else:
+                                        processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], displ_ids, 0, 1000)
             else:  # even though these lines are not part of reading text we still want to check them for hand changes
                 if len(elem.findall(".//handShift")) != 0:
                     hand = elem.findall(".//handShift")[0].get("new")[1:]

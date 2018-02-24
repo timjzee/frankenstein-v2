@@ -5,8 +5,8 @@
 - Text processing: Datamuse API
 
 ## Next steps:
-- add support for subzones from other pages: e.g. `<anchor xml:id="c56-0089.01"/>` in 56-0088 refers to `<addSpan corresp="#c56-0089.01" spanTo="#c56-0089.02"/>` in 56-0089
-- get latest page files from SGA repo
+- ~~add support for subzones from other pages: e.g. `<anchor xml:id="c56-0089.01"/>` in 56-0088 refers to `<addSpan corresp="#c56-0089.01" spanTo="#c56-0089.02"/>` in 56-0089~~
+- ~~get latest page files from SGA repo~~
 - process text:
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
@@ -27,6 +27,7 @@
     - handle punctuation marks
     - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse).
     - find heuristic that turns *have* + *g* + *one* into *have gone* rather than *have g one* in 56-0032
+    - find heuristic that turns *by* + *the* + *desire* into *by the desire* rather than *bythe desire* in 56-0012
 - printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags)
 - check attribution accuracy
 - optimize dataMuse calls
@@ -61,4 +62,4 @@
 - processLine should probably refactored so it differentiates between different levels of tags, but then we need a solution for tail text
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
   - E.g. *their experience & to feelings one another* in 57-0019
-  - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103~~ '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'
+  - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~
