@@ -5,6 +5,8 @@
 - Text processing: Datamuse API
 
 ## Next steps:
+- ~~change word scoring algorithm, final score is product of score and frequency instead of average. This prevents the selection of non-words such as *atthis* in stead of *at* and *this* in 56-0032~~
+  - ~~fall back on old algorithm if the best score is 0 (due to one word with a score of 0)~~
 - ~~add support for subzones from other pages: e.g. `<anchor xml:id="c56-0089.01"/>` in 56-0088 refers to `<addSpan corresp="#c56-0089.01" spanTo="#c56-0089.02"/>` in 56-0089~~
 - ~~get latest page files from SGA repo~~
 - process text:
@@ -26,8 +28,12 @@
     - ~~if the abc-option has a score higher than a certain threshold, it should always be chosen, e.g. in 56-0036 *on* + *c* + *e* should become *once* rather than *on ce*~~
     - handle punctuation marks
     - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse).
-    - find heuristic that turns *have* + *g* + *one* into *have gone* rather than *have g one* in 56-0032
-    - find heuristic that turns *by* + *the* + *desire* into *by the desire* rather than *bythe desire* in 56-0012
+    - ~~find heuristic that turns *have* + *g* + *one* into *have gone* rather than *have g one* in 56-0032~~
+      - ~~check for single consonant in "a" and "b" parts~~
+      - ~~if single consonant in "a", then "a_b_c" and "a_bc" are no longer an option~~
+      - ~~if single consonant in "b" and "a" score is better than "ab" and "abc" score, then "a_bc" is the only option~~
+    - ~~find heuristic that turns *by* + *the* + *desire* into *by the desire* rather than *bythe desire* in 56-0012~~
+      - ~~solved through change in scoring algorithm (product instead of average)~~
 - printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags)
 - check attribution accuracy
 - optimize dataMuse calls

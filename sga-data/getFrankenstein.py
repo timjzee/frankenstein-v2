@@ -66,7 +66,7 @@ def callDatamuse(word):
     else:
         score = 0
         freq = 0
-    final_score = (score + freq) / 2
+    final_score = score * freq  # changed from (score + freq) / 2
     return final_score
 
 
@@ -85,14 +85,30 @@ def testWords(processed_text):
         score_ab = callDatamuse(part_a + previous_addition)
         score_bc = callDatamuse(previous_addition + curline_part)
         score_abc = callDatamuse(part_a + previous_addition + curline_part)
-        combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
-        combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-        combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
-        combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+        combo_a_b_c = (score_a * score_b * score_c, part_a + " " + previous_addition + " " + processed_text, "a_b_c")  # score used to be average of all scores, i.e. sum of scores / number of scores
+        combo_ab_c = (score_ab * score_ab * score_c, part_a + previous_addition + " " + processed_text, "ab_c")
+        combo_a_bc = (score_a * score_a * score_bc, part_a + " " + previous_addition + processed_text, "a_bc")
+        combo_abc = (score_abc * score_abc * score_abc, part_a + previous_addition + processed_text, "abc")
         if combo_abc[0] > 0:
             best_combo = combo_abc
+        elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", previous_addition):  # if one or more consecutive consonants in part_b
+            if (score_a > score_ab) and (score_a > score_abc):
+                best_combo = combo_a_bc
         else:
-            best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+            if re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", part_a):  # if one or more consecutive consonants in part_a
+                best_combo = max(combo_ab_c, combo_abc)
+                if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
+                    combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                    best_combo = max(combo_ab_c, combo_abc)
+            else:
+                best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+                if best_combo[0] == 0:
+                    combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
+                    combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+                    combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
+                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                    best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
         print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
         print(best_combo, "REVISION")
         match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
