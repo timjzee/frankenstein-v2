@@ -49,11 +49,15 @@ def getPageRoot(page_name, file_type):
     return rt, tr
 
 
-def callDatamuse(word):
+def callDatamuse(word, left_context=None):
     """Uses the datamuse API to find (scores for) words"""
     global dict_call_counter
     dict_call_counter += 1
-    output = requests.get("https://api.datamuse.com/words?sp={}&md=f".format(word))
+    if not left_context:
+        lc_text = ""
+    else:
+        lc_text = "&lc=" + left_context[:]
+    output = requests.get("https://api.datamuse.com/words?sp={}{}&md=f".format(word, lc_text))
     output_list = output.json()
     if len(output_list) != 0:
         matched_words = [i["word"] for i in output_list]
@@ -103,7 +107,7 @@ def testWords(processed_text):
                     best_combo = max(combo_ab_c, combo_abc)
             else:
                 best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
-                if best_combo[0] == 0:
+                if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
                     combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
                     combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
                     combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
@@ -191,19 +195,27 @@ def testWords(processed_text):
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
         print("#" + processed_text + "# - K")
     else:
-        prevline_part_score = callDatamuse(prevline_part)
+        if print_text == "":
+            l_context = None
+        else:
+            context_object = re.search(r"[^ ]+(?= *{}$)".format(previous_addition), print_text)
+            if context_object:
+                l_context = context_object.group()
+            else:
+                l_context = None
+        prevline_part_score = callDatamuse(prevline_part, l_context)
         combined_word = prevline_part + curline_part
         if len(curline_part) == 1:
             curline_part_score = 0
-            combined_score = callDatamuse(combined_word)
+            combined_score = callDatamuse(combined_word, l_context)
         else:
             if len(curline_part) > 1 and curline_part[-1] in [".", ",", ":", ";", "!", "?"]:  # if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)
-                curline_part_score = callDatamuse(curline_part[:-1])
-                combined_score = callDatamuse(combined_word[:-1])
+                curline_part_score = callDatamuse(curline_part[:-1], prevline_part)
+                combined_score = callDatamuse(combined_word[:-1], l_context)
             else:
-                curline_part_score = callDatamuse(curline_part)
-                combined_score = callDatamuse(combined_word)
-        if (prevline_part_score + curline_part_score) / 2 > combined_score:
+                curline_part_score = callDatamuse(curline_part, prevline_part)
+                combined_score = callDatamuse(combined_word, l_context)
+        if (prevline_part_score * curline_part_score) > (combined_score * combined_score):  # changed algorithm from mean to product of parts
             if hand == hand_list[-1]:
                 print_text_list[-1] += " " + processed_text
             else:
@@ -212,7 +224,26 @@ def testWords(processed_text):
             print_text += " " + processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
             print("#" + processed_text + "# - L")
-        else:
+        elif (prevline_part_score * curline_part_score) == (combined_score * combined_score) and combined_score == 0:  # fall back on old algorithm
+            if ((prevline_part_score + curline_part_score) / 2) > combined_score:  # changed algorithm from mean to product of parts
+                if hand == hand_list[-1]:
+                    print_text_list[-1] += " " + processed_text
+                else:
+                    print_text_list.append(" " + processed_text)
+                    hand_list.append(hand)
+                print_text += " " + processed_text
+                print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+                print("#" + processed_text + "# - L")
+            else:
+                if hand == hand_list[-1]:
+                    print_text_list[-1] += processed_text
+                else:
+                    print_text_list.append(processed_text)
+                    hand_list.append(hand)
+                print_text += processed_text
+                print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+                print("#" + processed_text + "# - M")
+        else:  # if joined score >= separated score
             if hand == hand_list[-1]:
                 print_text_list[-1] += processed_text
             else:
