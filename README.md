@@ -26,6 +26,8 @@
     - ~~if not, use regex to find the 'word' that precedes previous_addition in print_text~~
     - ~~get score for all combos: "a", "b", "c", "ab", "bc", "abc"~~
   - needs more testing / optimization / heuristics
+    - if multiple combos have a word with a 0-score, check whether 0-score words exist in previous print_text/1st edition, e.g. in 58-0001 *Lavenz* + *a* + *Geneva*, *Lavenza* (i.e. ab_c) should be chosen
+      - if for none of the 0-score combos, the 0-score word can be found in print_text/1st edition, fall back on the old algorithm
     - ~~if the abc-option has a score higher than a certain threshold, it should always be chosen, e.g. in 56-0036 *on* + *c* + *e* should become *once* rather than *on ce*~~
     - ~~handle punctuation marks or don't consider them in word look-up, e.g. *—"Dam* + *n* + *"the* in 56-0068~~
     - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse) or *M* + *r* + *.* --> *M r.* in 56-0068.
@@ -35,7 +37,7 @@
       - ~~if single consonant in "b" and "a" score is better than "ab" and "abc" score, then "a_bc" is the only option~~
     - ~~find heuristic that turns *by* + *the* + *desire* into *by the desire* rather than *bythe desire* in 56-0012~~
       - ~~solved through change in scoring algorithm (product instead of average)~~
-- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags) or the *r* of *Mr* ending up as *M Krempe commenced ran eulogy of himself* in 56-0068
+- ~~printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags) or the *r* of *Mr* ending up as *M Krempe commenced ran eulogy of himself* in 56-0068~~
 - check attribution accuracy
 - optimize dataMuse calls
   - word definitions perhaps use `&md=d` to only give scores > 0 to words which have a definition
