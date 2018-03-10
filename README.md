@@ -27,15 +27,15 @@
     - ~~get score for all combos: "a", "b", "c", "ab", "bc", "abc"~~
   - needs more testing / optimization / heuristics
     - ~~if the abc-option has a score higher than a certain threshold, it should always be chosen, e.g. in 56-0036 *on* + *c* + *e* should become *once* rather than *on ce*~~
-    - handle punctuation marks
-    - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse).
+    - ~~handle punctuation marks or don't consider them in word look-up, e.g. *—"Dam* + *n* + *"the* in 56-0068~~
+    - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse) or *M* + *r* + *.* --> *M r.* in 56-0068.
     - ~~find heuristic that turns *have* + *g* + *one* into *have gone* rather than *have g one* in 56-0032~~
       - ~~check for single consonant in "a" and "b" parts~~
       - ~~if single consonant in "a", then "a_b_c" and "a_bc" are no longer an option~~
       - ~~if single consonant in "b" and "a" score is better than "ab" and "abc" score, then "a_bc" is the only option~~
     - ~~find heuristic that turns *by* + *the* + *desire* into *by the desire* rather than *bythe desire* in 56-0012~~
       - ~~solved through change in scoring algorithm (product instead of average)~~
-- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags)
+- printing of tail text needs further adjustment: *Laavenz* instead of *Lavenza* in c58-0001 (nested `<hi>` tags) or the *r* of *Mr* ending up as *M Krempe commenced ran eulogy of himself* in 56-0068
 - check attribution accuracy
 - optimize dataMuse calls
   - word definitions perhaps use `&md=d` to only give scores > 0 to words which have a definition

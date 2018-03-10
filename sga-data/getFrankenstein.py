@@ -56,17 +56,18 @@ def callDatamuse(word, left_context=None):
     if not left_context:
         lc_text = ""
     else:
-        lc_text = "&lc=" + left_context[:]
-    output = requests.get("https://api.datamuse.com/words?sp={}{}&md=f".format(word, lc_text))
+        lc_text = "&lc=" + re.sub(r'[-"—.,;:!?]', '', left_context[:])
+    clean_word = re.sub(r'[-"—.,;:!?]', '', word)
+    output = requests.get("https://api.datamuse.com/words?sp={}{}&md=f".format(clean_word, lc_text))
     output_list = output.json()
     if len(output_list) != 0:
         matched_words = [i["word"] for i in output_list]
-        if word.lower() not in matched_words:  # takes into account when datamuse returns a number of words or a different 'related' word
+        if clean_word.lower() not in matched_words:  # takes into account when datamuse returns a number of words or a different 'related' word
             score = 0
             freq = 0
         else:
-            score = output_list[matched_words.index(word.lower())]["score"]
-            freq = float(output_list[matched_words.index(word.lower())]["tags"][0][2:])
+            score = output_list[matched_words.index(clean_word.lower())]["score"]
+            freq = float(output_list[matched_words.index(clean_word.lower())]["tags"][0][2:])
     else:
         score = 0
         freq = 0
@@ -95,24 +96,31 @@ def testWords(processed_text):
         combo_abc = (score_abc * score_abc * score_abc, part_a + previous_addition + processed_text, "abc")
         if combo_abc[0] > 0:
             best_combo = combo_abc
-        elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", previous_addition):  # if one or more consecutive consonants in part_b
-            if (score_a > score_ab) and (score_a > score_abc):
-                best_combo = combo_a_bc
-        else:
-            if re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", part_a):  # if one or more consecutive consonants in part_a
+            print("combo 1")
+        elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", part_a.lower()):  # if one or more consecutive consonants in part_a
+            best_combo = max(combo_ab_c, combo_abc)
+            print("combo 3")
+            if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
+                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_ab_c, combo_abc)
-                if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
-                    combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
-                    best_combo = max(combo_ab_c, combo_abc)
-            else:
+        elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", previous_addition.lower()):  # if one or more consecutive consonants in part_b
+            print("combo 2")
+            best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
+            if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
+                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
+                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
-                if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
-                    combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
-                    combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-                    combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
-                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
-                    best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+        else:
+            best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+            print("combo 4")
+            if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
+                combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
+                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
+                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
         print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
         print(best_combo, "REVISION")
         match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
