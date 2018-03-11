@@ -4,6 +4,7 @@ import re
 import requests
 import sys
 import random
+import math
 
 
 def removeNamespaces(xml_file):
@@ -56,8 +57,8 @@ def callDatamuse(word, left_context=None):
     if not left_context:
         lc_text = ""
     else:
-        lc_text = "&lc=" + re.sub(r'[-"—.,;:!?]', '', left_context[:])
-    clean_word = re.sub(r'[-"—.,;:!?]', '', word)
+        lc_text = "&lc=" + re.sub(r'[-"—.,;:!?()]', '', left_context[:])
+    clean_word = re.sub(r'[-"—.,;:!?()]', '', word)
     output = requests.get("https://api.datamuse.com/words?sp={}{}&md=f".format(clean_word, lc_text))
     output_list = output.json()
     if len(output_list) != 0:
@@ -71,8 +72,14 @@ def callDatamuse(word, left_context=None):
     else:
         score = 0
         freq = 0
-    final_score = score * freq  # changed from (score + freq) / 2
+    final_score = score * math.sqrt(freq)  # changed from (score + freq) / 2
     return final_score
+
+
+def search1818Edition(wrd):
+    search_word = re.sub(r'[-"—.,;:!?()]', '', wrd)
+    find_list = re.findall(r'[-"—.,;:!?() ]{}[-"—.,;:!?() ]'.format(search_word), edition_1818)
+    return len(find_list)
 
 
 def testWords(processed_text):
@@ -100,27 +107,65 @@ def testWords(processed_text):
         elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", part_a.lower()):  # if one or more consecutive consonants in part_a
             best_combo = max(combo_ab_c, combo_abc)
             print("combo 3")
-            if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
-                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+            print("algo 1")
+            if best_combo[0] == 0:  # if both scores are 0 search in 1818 edition
+                print("algo 2")
+                count_c = search1818Edition(curline_part) if score_c == 0 else score_c
+                count_ab = search1818Edition(part_a + previous_addition) if score_ab == 0 else score_ab
+                count_abc = search1818Edition(part_a + previous_addition + curline_part)
+                combo_ab_c = (count_ab * count_c, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_ab_c, combo_abc)
+                if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
+                    print("algo 3")
+                    combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
+                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                    best_combo = max(combo_ab_c, combo_abc)
         elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", previous_addition.lower()):  # if one or more consecutive consonants in part_b
             print("combo 2")
+            print("algo 1")
             best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
-            if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
-                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-                combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
-                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
-                best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+            if best_combo[0] == 0:  # if all scores are 0 search in 1818 edition
+                print("algo 2")
+                count_a = search1818Edition(part_a) if score_a == 0 else score_a
+                count_c = search1818Edition(curline_part) if score_c == 0 else score_c
+                count_ab = search1818Edition(part_a + previous_addition) if score_ab == 0 else score_ab
+                count_bc = search1818Edition(previous_addition + curline_part) if score_bc == 0 else score_bc
+                count_abc = search1818Edition(part_a + previous_addition + curline_part)
+                combo_ab_c = (count_ab * count_c, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_a_bc = (count_a * count_bc, part_a + " " + previous_addition + processed_text, "a_bc")
+                combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
+                best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
+                if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
+                    print("algo 3")
+                    combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
+                    combo_a_bc = ((score_a + score_bc), part_a + " " + previous_addition + processed_text, "a_bc")
+                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                    best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
         else:
             best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
             print("combo 4")
+            print("algo 1")
             if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
-                combo_a_b_c = ((score_a + score_b + score_c) / 3, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
-                combo_ab_c = ((score_ab + score_c) / 2, part_a + previous_addition + " " + processed_text, "ab_c")
-                combo_a_bc = ((score_a + score_bc) / 2, part_a + " " + previous_addition + processed_text, "a_bc")
-                combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                print("algo 2")
+                count_a = search1818Edition(part_a) if score_a == 0 else score_a
+                count_b = search1818Edition(previous_addition) if score_b == 0 else score_b
+                count_c = search1818Edition(curline_part) if score_c == 0 else score_c
+                count_ab = search1818Edition(part_a + previous_addition) if score_ab == 0 else score_ab
+                count_bc = search1818Edition(previous_addition + curline_part) if score_bc == 0 else score_bc
+                count_abc = search1818Edition(part_a + previous_addition + curline_part)
+                combo_a_b_c = (count_a * count_b * count_c, part_a + " " + previous_addition + " " + processed_text, "a_b_c")
+                combo_ab_c = (count_ab * count_ab * count_c, part_a + previous_addition + " " + processed_text, "ab_c")
+                combo_a_bc = (count_a * count_bc * count_bc, part_a + " " + previous_addition + processed_text, "a_bc")
+                combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
+                if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
+                    print("algo 3")
+                    combo_a_b_c = ((score_a + score_b + score_c), part_a + " " + previous_addition + " " + processed_text, "a_b_c")
+                    combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
+                    combo_a_bc = ((score_a + score_bc), part_a + " " + previous_addition + processed_text, "a_bc")
+                    combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
+                    best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
         print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
         print(best_combo, "REVISION")
         match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
@@ -241,7 +286,7 @@ def testWords(processed_text):
                     hand_list.append(hand)
                 print_text += " " + processed_text
                 print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-                print("#" + processed_text + "# - L")
+                print("#" + processed_text + "# - M")
             else:
                 if hand == hand_list[-1]:
                     print_text_list[-1] += processed_text
@@ -250,7 +295,7 @@ def testWords(processed_text):
                     hand_list.append(hand)
                 print_text += processed_text
                 print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-                print("#" + processed_text + "# - M")
+                print("#" + processed_text + "# - N")
         else:  # if joined score >= separated score
             if hand == hand_list[-1]:
                 print_text_list[-1] += processed_text
@@ -259,7 +304,7 @@ def testWords(processed_text):
                 hand_list.append(hand)
             print_text += processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - M")
+            print("#" + processed_text + "# - O")
     prev_add_processed = True
 
 
@@ -271,7 +316,8 @@ def processText(raw_text, no_of_calls, mod_status):
     global previous_addition
     global prev_add_processed
     if mod_status:  # complex modifications and simple deletions need no extra spaces
-        new_text = re.sub(r"[\n\t] *", "", raw_text)  # deals with newlines and spaces of xml structure
+        new_text = re.sub(r"^[\n\t] *", "", raw_text)  # deals with newlines and spaces of xml structure
+        new_text = re.sub(r"[\n\t] *", " ", new_text)
     else:  # simple adds need an extra space for reading text
         new_text = re.sub(r"[\n\t] *", " ", raw_text)
     # Next up: add spaces between lines, hyphens indicate a split up word, but some split up words are not marked by hyphens --> use dictionary (api) to determine whether two parts are words
@@ -453,21 +499,20 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     else:  # i.e. if an anchor is not used for displacement purposes
                         if i.get("id") == handspan_id:
                             hand = prev_hand[:]
-            if "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]) or "hi" in "/".join(page_tree.getelementpath(i).split("/")[:-1]):  # and i.tag != "mod":  # turned into if "mod" is somewhere upstream
-                mod = True if "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]) else False
-                if i.tail not in [None, "", "\n"]:
-                    print(page_tree.getelementpath(i))
-                    process_text_calls += 1
-                    process_text_calls = processText(i.tail, process_text_calls, mod)
-                mod_parent = i.getparent()
-                while mod_parent.tag not in ["mod", "hi"]:
-                    mod_parent = mod_parent.getparent()
-                mod_children = [k for k in mod_parent.iter()]
-                if mod_children.index(i) == (len(mod_children) - 1):  # if val.tag in allowed_tags): outdented so it doesn't just apply to tags which contain reading text
-                    if mod_parent.tail not in [None, "", "\n"]:
-                        print(page_tree.getelementpath(i))
+            if "mod" in page_tree.getelementpath(i.getparent()) or "hi" in page_tree.getelementpath(i.getparent()):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
+                if "del" not in page_tree.getelementpath(i.getparent()):
+                    mod = True if "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]) else False
+                    if i.tail not in [None, "", "\n"]:
                         process_text_calls += 1
-                        process_text_calls = processText(mod_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                        process_text_calls = processText(i.tail, process_text_calls, mod)
+                    mod_parent = i.getparent()
+                    while mod_parent.tag not in ["mod", "hi"]:
+                        mod_parent = mod_parent.getparent()
+                    mod_children = [k for k in mod_parent.iter()]
+                    if mod_children.index(i) == (len(mod_children) - 1):  # if val.tag in allowed_tags): outdented so it doesn't just apply to tags which contain reading text
+                        if mod_parent.tail not in [None, "", "\n"]:
+                            process_text_calls += 1
+                            process_text_calls = processText(mod_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
             # if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()) and "mod" not in page_tree.getelementpath(i):
             else:  # if not "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]):
                 if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()):  # Prints text after/between additions that aren't contained within a <mod>
@@ -719,6 +764,8 @@ hand = "mws"
 handspan_id = ""
 previous_addition = ""
 prev_add_processed = False
+with open("frankenstein-1818edition.txt") as f:
+    edition_1818 = f.read()
 
 mode_input = ""
 while mode_input not in ["auto", "a", "A", "manual", "m", "M", "random", "r", "R"]:

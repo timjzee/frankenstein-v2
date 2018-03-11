@@ -11,8 +11,10 @@
 - ~~add support for subzones from other pages: e.g. `<anchor xml:id="c56-0089.01"/>` in 56-0088 refers to `<addSpan corresp="#c56-0089.01" spanTo="#c56-0089.02"/>` in 56-0089~~
 - ~~get latest page files from SGA repo~~
 - process text:
+  - if curline_par is a number and preceded by a non-number insert a space, e.g. in 58-0001 *th* + *17* --> joined
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
+  - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*
   - handle capitalization, punctuation
     - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
     - necessary for POS tagging
@@ -26,8 +28,8 @@
     - ~~if not, use regex to find the 'word' that precedes previous_addition in print_text~~
     - ~~get score for all combos: "a", "b", "c", "ab", "bc", "abc"~~
   - needs more testing / optimization / heuristics
-    - if multiple combos have a word with a 0-score, check whether 0-score words exist in previous print_text/1st edition, e.g. in 58-0001 *Lavenz* + *a* + *Geneva*, *Lavenza* (i.e. ab_c) should be chosen
-      - if for none of the 0-score combos, the 0-score word can be found in print_text/1st edition, fall back on the old algorithm
+    - ~~if multiple combos have a word with a 0-score, check whether 0-score words exist in previous print_text/1st edition, e.g. in 58-0001 *Lavenz* + *a* + *Geneva*, *Lavenza* (i.e. ab_c) should be chosen~~
+      - ~~if for none of the 0-score combos, the 0-score word can be found in print_text/1st edition, fall back on the old algorithm~~
     - ~~if the abc-option has a score higher than a certain threshold, it should always be chosen, e.g. in 56-0036 *on* + *c* + *e* should become *once* rather than *on ce*~~
     - ~~handle punctuation marks or don't consider them in word look-up, e.g. *—"Dam* + *n* + *"the* in 56-0068~~
     - maybe if part_a consists of an uppercase letter that is not I, we should not go through revision process, e.g. *Lavenza* in c58-0001 (names are not well recognized in Datamuse) or *M* + *r* + *.* --> *M r.* in 56-0068.
@@ -57,6 +59,7 @@
   - ~~if addSpan with displacement ID is found : put ID in delspan_id, delspan = True and break out~~
   - ~~if metamark="displacement" with id (in either line or zone) is found, processSubZone~~
 - implement hand attribution
+  - who is *comp*, e.g. in 58-0002
   - ~~Types:~~
     - ~~`<add place="superlinear" hand="#pbs">power</add>` --> processLine~~
     - ~~`<handShift new="#pbs"/>` e.g. in 58-0053 --> processLine, processZone~~
