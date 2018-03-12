@@ -4,7 +4,16 @@
 - Metadata from Shelley-Godwin Archive: Creative Commons 1.0
 - Text processing: Datamuse API
 
-## Next steps:
+## About
+This project presents an accessible gold standard text for the authorship attribution of the 19th century novel *Frankenstein*. The text is constructed from the annotated draft from the Shelley-Godwin Archive (SGA). The TEI .xml files used in the SGA are multifunctional and as such they are not optimized for any single purpose. The files provided in this repository have been constructed with authorship attribution in mind. Some features:
+- Two .json list objects: one with stretches of subsequent text by the same author and one with the corresponding authors
+- Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
+
+## To do:
+- ~~implement cross-linear modifications (not implemented by website), e.g *their experience & to feelings one another* in 57-0019, see also guidelines~~
+  - ~~for deletions it doesn't matter, but for additions it does~~
+  - does this occur across pages? (implemented but not tested)
+  - needs more testing
 - ~~change join/separate algorithm to product of first and second part 56-0022: *in* + *dulged* should be *indulged* because score of dulged is 0~~
 - ~~change word scoring algorithm, final score is product of score and frequency instead of average. This prevents the selection of non-words such as *atthis* in stead of *at* and *this* in 56-0032~~
   - ~~fall back on old algorithm if the best score is 0 (due to one word with a score of 0)~~
@@ -59,7 +68,7 @@
   - ~~if addSpan with displacement ID is found : put ID in delspan_id, delspan = True and break out~~
   - ~~if metamark="displacement" with id (in either line or zone) is found, processSubZone~~
 - implement hand attribution
-  - who is *comp*, e.g. in 58-0002
+  - ~~who is *comp*, e.g. in 58-0002 --> TEI ODD: unknown compositor~~
   - ~~Types:~~
     - ~~`<add place="superlinear" hand="#pbs">power</add>` --> processLine~~
     - ~~`<handShift new="#pbs"/>` e.g. in 58-0053 --> processLine, processZone~~
@@ -75,5 +84,4 @@
 - ~~add support for delspans that are initiated within other delspans~~
 - processLine should probably refactored so it differentiates between different levels of tags, but then we need a solution for tail text
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
-  - E.g. *their experience & to feelings one another* in 57-0019
   - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~

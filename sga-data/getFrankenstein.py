@@ -5,6 +5,7 @@ import requests
 import sys
 import random
 import math
+# import copy
 
 
 def removeNamespaces(xml_file):
@@ -416,6 +417,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
     global hand
     global prev_hand
     global handspan_id
+    global ignore_adds
     process_text_calls = 0
     if line_element.text not in [None, "", "\n"] and from_index == 0:
         process_text_calls += 1
@@ -424,7 +426,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
     for i in line_element.iter():
         if counter >= from_index and type(i) == etree._Element:
             allowed_tags = ["add", "hi", "retrace", "damage", "unclear"]
-            if i.tag in allowed_tags:
+            if i.tag in allowed_tags and i.get("id") not in ignore_adds:
                 if "del" not in page_tree.getelementpath(i) and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
                     if i.text not in [None, "", "\n"]:
                         if i.tag == "add" and i.get("hand"):
@@ -436,6 +438,37 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                         process_text_calls = processText(i.text, process_text_calls, mod)
                         if i.tag == "add" and i.get("hand"):
                             hand = prev_hand[:]
+                    if i.tag == "add" and i.get("next"):  # handle cross-linear modifications
+                        ignore_adds = []
+                        page_root2, page_tree2 = getPageRoot(page_id, "page")
+#                        = copy.deepcopy(page_root)
+#                        page_tree2 = page_root2.getroottree()
+                        i2 = page_root2.xpath("//add[@next='{}']".format(i.get("next")))[0]
+                        while i2.get("next"):
+                            next_id = i2.get("next")[1:]
+                            ignore_adds.append(next_id)
+                            if len(page_root2.xpath("//add[@id='{}']".format(next_id))) != 0:
+                                i2 = page_root2.xpath("//add[@id='{}']".format(next_id))[0]
+                                if "del" not in page_tree2.getelementpath(i2):
+                                    if i2.get("hand"):
+                                        prev_hand = hand[:]
+                                        hand = i2.get("hand")[1:]
+                                    process_text_calls += 1
+                                    process_text_calls = processText(i2.text, process_text_calls, False)
+                                    if i2.get("hand"):
+                                        hand = prev_hand[:]
+                            else:  # if the cross-linear addition is on another page
+                                new_page_id = "ox-ms_abinger_" + next_id.split(".")[0]
+                                page_root2, page_tree2 = getPageRoot(new_page_id, "page")
+                                i2 = page_root2.xpath("//add[@id='{}']".format(next_id))[0]
+                                if "del" not in page_tree2.getelementpath(i2):
+                                    if i2.get("hand"):
+                                        prev_hand = hand[:]
+                                        hand = i2.get("hand")[1:]
+                                    process_text_calls += 1
+                                    process_text_calls = processText(i2.text, process_text_calls, False)
+                                    if i2.get("hand"):
+                                        hand = prev_hand[:]
 #                    if len(i.findall(".//metamark[@function='displacement']")) != 0:  # if there's a displacement metamark in an add tag
 #                        j = i.findall(".//metamark[@function='displacement']")[0]
 #                        if j.get("id") in displ_ids:
@@ -764,6 +797,7 @@ hand = "mws"
 handspan_id = ""
 previous_addition = ""
 prev_add_processed = False
+ignore_adds = []
 with open("frankenstein-1818edition.txt") as f:
     edition_1818 = f.read()
 
