@@ -5,7 +5,6 @@ import requests
 import sys
 import random
 import math
-# import copy
 
 
 def removeNamespaces(xml_file):
@@ -439,10 +438,9 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                         if i.tag == "add" and i.get("hand"):
                             hand = prev_hand[:]
                     if i.tag == "add" and i.get("next"):  # handle cross-linear modifications
+                        print("CROSS-LINEAR MODIFICATION:")
                         ignore_adds = []
                         page_root2, page_tree2 = getPageRoot(page_id, "page")
-#                        = copy.deepcopy(page_root)
-#                        page_tree2 = page_root2.getroottree()
                         i2 = page_root2.xpath("//add[@next='{}']".format(i.get("next")))[0]
                         while i2.get("next"):
                             next_id = i2.get("next")[1:]

@@ -10,6 +10,8 @@ This project presents an accessible gold standard text for the authorship attrib
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
 ## To do:
+- implement restoration, see guidelines
+- add fix for 56-0064?
 - ~~implement cross-linear modifications (not implemented by website), e.g *their experience & to feelings one another* in 57-0019, see also guidelines~~
   - ~~for deletions it doesn't matter, but for additions it does~~
   - does this occur across pages? (implemented but not tested)
