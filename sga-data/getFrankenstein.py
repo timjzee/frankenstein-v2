@@ -57,8 +57,8 @@ def callDatamuse(word, left_context=None):
     if not left_context:
         lc_text = ""
     else:
-        lc_text = "&lc=" + re.sub(r'[-"—.,;:!?()]', '', left_context[:])
-    clean_word = re.sub(r'[-"—.,;:!?()]', '', word)
+        lc_text = "&lc=" + re.sub(r'[-"—.–,;:!?()]', '', left_context[:])
+    clean_word = re.sub(r'[-"—.–,;:!?()]', '', word)
     output = requests.get("https://api.datamuse.com/words?sp={}{}&md=f".format(clean_word, lc_text))
     output_list = output.json()
     if len(output_list) != 0:
@@ -77,8 +77,8 @@ def callDatamuse(word, left_context=None):
 
 
 def search1818Edition(wrd):
-    search_word = re.sub(r'[-"—.,;:!?()]', '', wrd)
-    find_list = re.findall(r'[-"—.,;:!?() ]{}[-"—.,;:!?() ]'.format(search_word), edition_1818)
+    search_word = re.sub(r'[-"—.–,;:!?()]', '', wrd)
+    find_list = re.findall(r'[-"—.–,;:!?() ]{}[-"—.–,;:!?() ]'.format(search_word), edition_1818)
     return len(find_list)
 
 
