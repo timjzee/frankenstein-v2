@@ -10,12 +10,18 @@ This project presents an accessible gold standard text for the authorship attrib
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
 ## To do:
-- implement restoration, see guidelines
+- ~~implement restoration, see guidelines~~
+  - text in non-del tags within a del within a restore (implemented but not tested)
+  - ~~text in del tags within a restore (implemented and tested)~~
+  - text in non-del tags within delSpan? (not encountered/implemented)
+  - pages: '56-0051', '56-0106', '56-0114', '56-0122', '57-0033', '57-0039'(2x), '57-0057', '57-0082', '57-0087'(2x), '57-0096', '57-0104', '57-0116', '57-0145'(2x), '57-0158', '57-0166'
 - add fix for 56-0064?
 - ~~implement cross-linear modifications (not implemented by website), e.g *their experience & to feelings one another* in 57-0019, see also guidelines~~
   - ~~for deletions it doesn't matter, but for additions it does~~
-  - does this occur across pages? (implemented but not tested)
-  - needs more testing
+  - ~~does this occur across pages? (implemented but not tested)~~
+  - ~~addspan tags, e.g 56-0056~~
+  - ~~different zone on same page, e.g 56-0056~~
+  - needs more testing, pages: '56-0011', '56-0005', '56-0006', '56-0008', '56-0014', '56-0010', '56-0022', '56-0034', '56-0038', '56-0075', '56-0079', '56-0082'(2x), '56-0084', '56-00104', '56-0110', '56-0113', '56-00116'(2x), '56-0128', '57-0013', '57-0015', '57-0019', '57-0031', '57-0030', '57-0039', '57-0043', '57-0045', '57-0070', '57-0077', '57-0111', '57-0146', '57-0147', '57-0148', '57-0168'
 - ~~change join/separate algorithm to product of first and second part 56-0022: *in* + *dulged* should be *indulged* because score of dulged is 0~~
 - ~~change word scoring algorithm, final score is product of score and frequency instead of average. This prevents the selection of non-words such as *atthis* in stead of *at* and *this* in 56-0032~~
   - ~~fall back on old algorithm if the best score is 0 (due to one word with a score of 0)~~

@@ -420,12 +420,14 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
     process_text_calls = 0
     if line_element.text not in [None, "", "\n"] and from_index == 0:
         process_text_calls += 1
-        process_text_calls = processText(line_element.text, process_text_calls, False)               # Prints text at the start of a line
+        # process_text_calls = processText(line_element.text, process_text_calls, False)               # Prints text at the start of a line
     counter = 0
     for i in line_element.iter():
         if counter >= from_index and type(i) == etree._Element:
             allowed_tags = ["add", "hi", "retrace", "damage", "unclear"]
             if ((i.tag in allowed_tags and "del" not in page_tree.getelementpath(i)) or re.search(r'restore.*del', page_tree.getelementpath(i))) and i.get("id") not in ignore_adds and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
+                if re.search(r'restore.*del', page_tree.getelementpath(i)):
+                    print("RESTORATION in", page_id)
                 if i.text not in [None, "", "\n"]:
                     if i.tag == "add" and i.get("hand"):
                         prev_hand = hand[:]
@@ -433,11 +435,11 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     process_text_calls += 1
 #                        mod = True if "mod" in page_tree.getelementpath(i) else False
                     mod = False
-                    process_text_calls = processText(i.text, process_text_calls, mod)
+                    # process_text_calls = processText(i.text, process_text_calls, mod)
                     if i.tag == "add" and i.get("hand"):
                         hand = prev_hand[:]
                 if i.tag == "add" and i.get("next"):  # handle cross-linear modifications
-                    print("CROSS-LINEAR MODIFICATION:")
+                    print("CROSS-LINEAR MODIFICATION in", page_id)
                     ignore_adds = []
                     page_root2, page_tree2 = getPageRoot(page_id, "page")
                     i2 = page_root2.xpath("//add[@next='{}']".format(i.get("next")))[0]
@@ -452,12 +454,14 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                                         prev_hand = hand[:]
                                         hand = i2.get("hand")[1:]
                                     process_text_calls += 1
-                                    process_text_calls = processText(i2.text, process_text_calls, False)
+                                    # process_text_calls = processText(i2.text, process_text_calls, False)
                                     if i2.get("hand"):
                                         hand = prev_hand[:]
                             else:
                                 i2 = page_root2.xpath("//addSpan[@id='{}']".format(next_id))[0]
+                                print("NEXT IS ADDSPAN!")
                         else:  # if the cross-linear addition is on another page
+                            print("NEXT ADD ON DIFFERENT PAGE!")
                             new_page_id = "ox-ms_abinger_" + next_id.split(".")[0]
                             page_root2, page_tree2 = getPageRoot(new_page_id, "page")
                             i2 = page_root2.xpath("//add[@id='{}']".format(next_id))[0]
@@ -466,7 +470,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                                     prev_hand = hand[:]
                                     hand = i2.get("hand")[1:]
                                 process_text_calls += 1
-                                process_text_calls = processText(i2.text, process_text_calls, False)
+                                # process_text_calls = processText(i2.text, process_text_calls, False)
                                 if i2.get("hand"):
                                     hand = prev_hand[:]
 #                    if len(i.findall(".//metamark[@function='displacement']")) != 0:  # if there's a displacement metamark in an add tag
@@ -494,6 +498,8 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     prev_hand = hand[:]
                     hand = i.get("hand")[1:]
                     handspan_id = i.get("spanTo")[1:]
+                if i.get("next"):
+                    print("CROSS-LINEAR MODIFICATION in", page_id, "INITIATED IN ADDSPAN!")
             elif i.tag == "handShift":
                 hand = i.get("new")[1:]
             elif i.tag == "metamark" and (i.get("id") in displ_ids):
@@ -537,7 +543,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     mod = True if "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]) else False
                     if i.tail not in [None, "", "\n"]:
                         process_text_calls += 1
-                        process_text_calls = processText(i.tail, process_text_calls, mod)
+                        # process_text_calls = processText(i.tail, process_text_calls, mod)
                     mod_parent = i.getparent()
                     while mod_parent.tag not in ["mod", "hi"]:
                         mod_parent = mod_parent.getparent()
@@ -545,7 +551,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     if mod_children.index(i) == (len(mod_children) - 1):  # if val.tag in allowed_tags): outdented so it doesn't just apply to tags which contain reading text
                         if mod_parent.tail not in [None, "", "\n"]:
                             process_text_calls += 1
-                            process_text_calls = processText(mod_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                            # process_text_calls = processText(mod_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
             # if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()) and "mod" not in page_tree.getelementpath(i):
             else:  # if not "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]):
                 if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()):  # Prints text after/between additions that aren't contained within a <mod>
@@ -554,7 +560,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     else:
                         process_text_calls += 1
 #                    mod = True if "mod" in page_tree.getelementpath(i) else False
-                        process_text_calls = processText(i.tail, process_text_calls, False)  # changed mod to False
+                        # process_text_calls = processText(i.tail, process_text_calls, False)  # changed mod to False
         counter += 1
     return False
 
@@ -725,6 +731,7 @@ def processLocus(locus, match_page):
                     root, tree = getPageRoot(page_id, "page")
                     processZone("main", "", root, tree, None, [], from_element, to_element)
             else:
+                print(page_id)
                 from_element = 0
                 to_element = 1000
                 root, tree = getPageRoot(page_id, "page")
@@ -750,19 +757,19 @@ def processChapter(chap, vol_no):
             if p_id in loc.get("target"):
                 match_id = "ox-ms_abinger_c" + p_id
                 processLocus(loc, match_id)
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        print("\nNumber of Datamuse API calls:", dict_call_counter)
+#        print(print_text)
+#        print(print_text_list)
+#        print(hand_list)
+#        print("\nNumber of Datamuse API calls:", dict_call_counter)
     else:
         for loc in chap.findall(".//locus"):
             processLocus(loc, "")
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
-        if continue_script not in ["y", "Y"]:
-            sys.exit()
+#        print(print_text)
+#        print(print_text_list)
+#        print(hand_list)
+#        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
+#        if continue_script not in ["y", "Y"]:
+#            sys.exit()
 
 
 def processVolume(vol_no):
