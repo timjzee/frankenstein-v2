@@ -10,6 +10,15 @@ This project presents an accessible gold standard text for the authorship attrib
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
 ## To do:
+- implement tail text of mod inside of mod, e.g. 57-0039 or mod inside of add, currently only the order of non-hierarchical tags within a mod are handled correctly. What happens in 57-0039 is that only the tail of the nested mod gets printed because all child tags of the nested mod are only checked against the nested mod (the first mod upstream is used)
+  - include add as a possible upstream parent tag
+  - for each tag that is the final tag in its immediate parent:
+    - print the tail text of the immediate parent (as we do now), but also
+    - check whether the parent is itself nested in add/mod/hi, and if so
+    - check its position within that parent by comparing the children of the nested add/mod/hi with the children of the parent add/mod/hi:
+        - if the final tags are identical, the tail text of the parent add/mod/hi should also be printed
+        - if the final tags are not identical, we don't have to do anything as the printing of the tail text will be handled when the final child (a sister to the nested add/mod/hi) is encountered
+  - ~~(for each tag within a mod check whether they have any children, if so move them to after their final child in the mod_children list)~~
 - ~~implement restoration, see guidelines~~
   - text in non-del tags within a del within a restore (implemented but not tested)
   - ~~text in del tags within a restore (implemented and tested)~~
@@ -34,6 +43,7 @@ This project presents an accessible gold standard text for the authorship attrib
   - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*
   - handle capitalization, punctuation
     - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
+    - a full stop should also be added before a milestone tag, which represent paragraph breaks
     - necessary for POS tagging
 - ~~support processing of individual pages (for debugging purposes)~~
 - maybe we need a double-checking mechanism after two consecutive JOIN/SEPARATE operations where the first operation's curline_part corresponds to the second operation's prevline_part

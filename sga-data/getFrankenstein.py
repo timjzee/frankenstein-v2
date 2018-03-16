@@ -444,7 +444,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     while i2.get("next"):
                         next_id = i2.get("next")[1:]
                         ignore_adds.append(next_id)
-                        if (len(page_root2.xpath("//add[@id='{}']".format(next_id))) or len(page_root2.xpath("//addSpan[@id='{}']".format(next_id)))) != 0:
+                        if len(page_root2.xpath("//add[@id='{}']".format(next_id))) != 0 or len(page_root2.xpath("//addSpan[@id='{}']".format(next_id))) != 0:
                             if len(page_root2.xpath("//add[@id='{}']".format(next_id))) != 0:
                                 i2 = page_root2.xpath("//add[@id='{}']".format(next_id))[0]
                                 if "del" not in page_tree2.getelementpath(i2):
@@ -532,24 +532,39 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     else:  # i.e. if an anchor is not used for displacement purposes
                         if i.get("id") == handspan_id:
                             hand = prev_hand[:]
-            if "mod" in page_tree.getelementpath(i.getparent()) or "hi" in page_tree.getelementpath(i.getparent()):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
-                if "del" not in page_tree.getelementpath(i.getparent()):
-                    mod = True if "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]) else False
-                    if i.tail not in [None, "", "\n"]:
+            i2_path = page_tree.getelementpath(i)
+            page_root2, page_tree2 = getPageRoot(page_id, "page")
+            i2 = page_root2.xpath("//{}".format(i2_path))[0]
+            prev_i2 = None
+            parent_counter = 0
+            while "mod" in page_tree2.getelementpath(i2.getparent()) or "hi" in page_tree2.getelementpath(i2.getparent()) or "add" in page_tree2.getelementpath(i2.getparent()):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
+                if "del" not in page_tree2.getelementpath(i2.getparent()) or re.search(r'restore.*del', page_tree2.getelementpath(i2.getparent())):
+                    mod = True if "mod" in "/".join(page_tree2.getelementpath(i2).split("/")[:-1]) else False
+                    if parent_counter == 0 and i2.tail not in [None, "", "\n"]:
                         process_text_calls += 1
-                        process_text_calls = processText(i.tail, process_text_calls, mod)
-                    mod_parent = i.getparent()
-                    while mod_parent.tag not in ["mod", "hi"]:
-                        mod_parent = mod_parent.getparent()
-                    mod_children = [k for k in mod_parent.iter()]
-                    if mod_children.index(i) == (len(mod_children) - 1):  # if val.tag in allowed_tags): outdented so it doesn't just apply to tags which contain reading text
-                        if mod_parent.tail not in [None, "", "\n"]:
+                        process_text_calls = processText(i2.tail, process_text_calls, mod)
+                    i2_parent = i2.getparent()
+                    while i2_parent.tag not in ["mod", "hi", "add"]:
+                        i2_parent = i2_parent.getparent()
+                    i2_parent_children = [k for k in i2_parent.iter()]
+                    i2_children = [k for k in i2.iter()]
+                    print(page_tree2.getelementpath(i2))
+                    if i2_parent_children[-1] == i2_children[-1] and (prev_i2 in i2_children[1:] or len(i2_children) == 1):  # if mod_children.index(i2) == (len(mod_children) - 1):  # outdented so it doesn't just apply to tags which contain reading text
+                        if i2_parent.tail not in [None, "", "\n"]:
                             process_text_calls += 1
-                            process_text_calls = processText(mod_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                            process_text_calls = processText(i2_parent.tail, process_text_calls, mod)      # Prints text that follows a <mod> after text of additions within <mod> have been printed
+                        prev_i2 = i2
+                        i2_path = page_tree2.getelementpath(i2_parent)
+                        i2 = page_root2.xpath("//{}".format(i2_path))[0]
+                        parent_counter += 1
+                    else:
+                        break
+                else:
+                    break
             # if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()) and "mod" not in page_tree.getelementpath(i):
-            else:  # if not "mod" in "/".join(page_tree.getelementpath(i).split("/")[:-1]):
+            if not ("mod" in page_tree.getelementpath(i.getparent()) or "hi" in page_tree.getelementpath(i.getparent()) or "add" in page_tree.getelementpath(i.getparent())):  # else
                 if i.tail not in [None, "", "\n"] and i.tag not in ["mod", "line"] and "del" not in page_tree.getelementpath(i.getparent()):  # Prints text after/between additions that aren't contained within a <mod>
-                    if i.tag == "hi" and len(i.getchildren()) != 0:
+                    if (i.tag == "hi" or i.tag == "add") and len(i.getchildren()) != 0:
                         pass
                     else:
                         process_text_calls += 1
