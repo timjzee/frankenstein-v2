@@ -192,25 +192,24 @@ def testWords(processed_text):
             else:
                 print_text_list.append(processed_text)
                 hand_list.append(hand)
-    elif len(prevline_part) == 1:
-        if re.fullmatch(r"[Ia&0-9]", prevline_part):    # if prevline_part in ["I", "a", "&"]:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += " " + processed_text
-            else:
-                print_text_list.append(" " + processed_text)
-                hand_list.append(hand)
-            print_text += " " + processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - F")
+    elif len(prevline_part) == 1 and re.fullmatch(r"[&0-9]", prevline_part):    # removed 'I' and 'a' from list, as this rule would separate words such as 'It'
+        if hand == hand_list[-1]:
+            print_text_list[-1] += " " + processed_text
         else:
-            if hand == hand_list[-1]:
-                print_text_list[-1] += processed_text
-            else:
-                print_text_list.append(processed_text)
-                hand_list.append(hand)
-            print_text += processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - G")
+            print_text_list.append(" " + processed_text)
+            hand_list.append(hand)
+        print_text += " " + processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
+        print("#" + processed_text + "# - F")
+    elif len(prevline_part) == 1 and re.fullmatch(r"[^Ia&0-9]", prevline_part):
+        if hand == hand_list[-1]:
+            print_text_list[-1] += processed_text
+        else:
+            print_text_list.append(processed_text)
+            hand_list.append(hand)
+        print_text += processed_text
+        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
+        print("#" + processed_text + "# - G")
     elif curline_part in ["I", "&"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += " " + processed_text
@@ -258,7 +257,7 @@ def testWords(processed_text):
                 l_context = None
         prevline_part_score = callDatamuse(prevline_part, l_context)
         combined_word = prevline_part + curline_part
-        if len(curline_part) == 1:
+        if len(curline_part) == 1 and curline_part not in ["I", "a"]:
             curline_part_score = 0
             combined_score = callDatamuse(combined_word, l_context)
         else:
@@ -427,6 +426,8 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
             allowed_tags = ["add", "hi", "retrace", "damage", "unclear"]
             if ((i.tag in allowed_tags and "del" not in page_tree.getelementpath(i)) or re.search(r'restore.*del', page_tree.getelementpath(i))) and i.get("id") not in ignore_adds and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
                 if i.text not in [None, "", "\n"]:
+                    if re.search(r'restore.*del', page_tree.getelementpath(i)):
+                        print("RESTORATION:")
                     if i.tag == "add" and i.get("hand"):
                         prev_hand = hand[:]
                         hand = i.get("hand")[1:]
@@ -452,6 +453,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                                         prev_hand = hand[:]
                                         hand = i2.get("hand")[1:]
                                     process_text_calls += 1
+                                    print(i2)
                                     process_text_calls = processText(i2.text, process_text_calls, False)
                                     if i2.get("hand"):
                                         hand = prev_hand[:]
@@ -537,9 +539,9 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
             i2 = page_root2.xpath("//{}".format(i2_path))[0]
             prev_i2 = None
             parent_counter = 0
-            while "mod" in page_tree2.getelementpath(i2.getparent()) or "hi" in page_tree2.getelementpath(i2.getparent()) or "add" in page_tree2.getelementpath(i2.getparent()):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
-                if "del" not in page_tree2.getelementpath(i2.getparent()) or re.search(r'restore.*del', page_tree2.getelementpath(i2.getparent())):
-                    mod = True if "mod" in "/".join(page_tree2.getelementpath(i2).split("/")[:-1]) else False
+            while "mod" in "/".join(i2_path.split("/")[:-1]) or "hi" in "/".join(i2_path.split("/")[:-1]) or "add" in "/".join(i2_path.split("/")[:-1]):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
+                if "del" not in "/".join(i2_path.split("/")[:-1]) or re.search(r'restore.*del', "/".join(i2_path.split("/")[:-1])):
+                    mod = True if "mod" in "/".join(i2_path.split("/")[:-1]) else False
                     if parent_counter == 0 and i2.tail not in [None, "", "\n"]:
                         process_text_calls += 1
                         process_text_calls = processText(i2.tail, process_text_calls, mod)
@@ -548,7 +550,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                         i2_parent = i2_parent.getparent()
                     i2_parent_children = [k for k in i2_parent.iter()]
                     i2_children = [k for k in i2.iter()]
-                    print(page_tree2.getelementpath(i2))
+#                    print(page_tree2.getelementpath(i2))
                     if i2_parent_children[-1] == i2_children[-1] and (prev_i2 in i2_children[1:] or len(i2_children) == 1):  # if mod_children.index(i2) == (len(mod_children) - 1):  # outdented so it doesn't just apply to tags which contain reading text
                         if i2_parent.tail not in [None, "", "\n"]:
                             process_text_calls += 1

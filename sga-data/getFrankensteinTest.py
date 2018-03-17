@@ -439,7 +439,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     if i.tag == "add" and i.get("hand"):
                         hand = prev_hand[:]
                 if i.tag == "add" and i.get("next"):  # handle cross-linear modifications
-                    print("CROSS-LINEAR MODIFICATION in", page_id)
+                    print("CROSS-LINEAR MODIFICATION in", page_id, "path:", page_tree.getelementpath(i), "children:", [k for k in i.iter()])
                     ignore_adds = []
                     page_root2, page_tree2 = getPageRoot(page_id, "page")
                     i2 = page_root2.xpath("//add[@next='{}']".format(i.get("next")))[0]
