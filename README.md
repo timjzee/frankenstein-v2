@@ -81,6 +81,7 @@ This project presents an accessible gold standard text for the authorship attrib
       - ~~make left context an optional parameter in callDatamuse, so that we don't have to implement it in double-checking mechanism yet~~
   - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
 - ~~add text from `<unclear>` and `<damage>` (e.g. 57-0111)~~ and `<retrace>` (e.g. 57-0013) tags
+  - should we process text from `<unclear>`? See example in guidelines
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
@@ -103,18 +104,21 @@ This project presents an accessible gold standard text for the authorship attrib
   - ~~line counter for use with fromLine and toLine attributes~~
 - ~~text within < hi > should not be printed if in < metamark >~~
 - ~~add support for delspans that are initiated within other delspans~~
-- processLine should probably refactored so it differentiates between different levels of tags, but then we need a solution for tail text
-  - solution is a processElement function that is called from processLine and itself
-    - processline first creates a list of top-level children
-    - for each allowed element type processElement is called
-    - processElement does the following
-      - checks whether it is a del or metamark, if not
-        - print element text
-        - create a list of the element's children
-        - calls itself for each child
-      - prints element tail text
-    - this way we solve the tail text problem using recursion
-    - and we have an elegant solution for cross-line additions
-    - processLine still handles anchors, delspans etc. providing these are never nested
+- ~~processLine should probably refactored so it differentiates between different levels of tags, but then we need a solution for tail text~~
+  - ~~solution is a processElement function that is called from processLine and itself~~
+    - ~~processline first creates a list of top-level children~~
+    - ~~for each allowed element type processElement is called~~
+    - ~~processElement does the following~~
+      - ~~checks whether it is a del, metamark or anchor, if not~~
+        - ~~print element text~~
+        - ~~create a list of the element's children~~
+        - ~~calls itself for each child~~
+      - ~~prints element tail text~~
+    - ~~this way we solve the tail text problem using recursion~~
+    - ~~and we have an elegant solution for cross-line additions~~
+    - ~~processLine still handles anchors, delspans etc. providing these are never nested~~
+      - ~~anchors and metamarks are sometimes nested; addspan and delspan aren't~~
+      - ~~anchors (for all functions) and metamarks need to be handled in processElement~~
+  - Needs more testing
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
   - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~

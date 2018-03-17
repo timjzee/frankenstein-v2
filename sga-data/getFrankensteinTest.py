@@ -426,8 +426,8 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
         if counter >= from_index and type(i) == etree._Element:
             allowed_tags = ["add", "hi", "retrace", "damage", "unclear"]
             if ((i.tag in allowed_tags and "del" not in page_tree.getelementpath(i)) or re.search(r'restore.*del', page_tree.getelementpath(i))) and i.get("id") not in ignore_adds and "metamark" not in page_tree.getelementpath(i):  # Prints text in additions (additions within deletions are ignored)
-                if re.search(r'restore.*del', page_tree.getelementpath(i)):
-                    print("RESTORATION in", page_id)
+#                if re.search(r'restore.*del', page_tree.getelementpath(i)):
+#                    print("RESTORATION in", page_id)
                 if i.text not in [None, "", "\n"]:
                     if i.tag == "add" and i.get("hand"):
                         prev_hand = hand[:]
@@ -439,7 +439,7 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     if i.tag == "add" and i.get("hand"):
                         hand = prev_hand[:]
                 if i.tag == "add" and i.get("next"):  # handle cross-linear modifications
-                    print("CROSS-LINEAR MODIFICATION in", page_id, "path:", page_tree.getelementpath(i), "children:", [k for k in i.iter()])
+#                    print("CROSS-LINEAR MODIFICATION in", page_id, "path:", page_tree.getelementpath(i), "children:", [k for k in i.iter()])
                     ignore_adds = []
                     page_root2, page_tree2 = getPageRoot(page_id, "page")
                     i2 = page_root2.xpath("//add[@next='{}']".format(i.get("next")))[0]
@@ -459,9 +459,9 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                                         hand = prev_hand[:]
                             else:
                                 i2 = page_root2.xpath("//addSpan[@id='{}']".format(next_id))[0]
-                                print("NEXT IS ADDSPAN!")
+#                                print("NEXT IS ADDSPAN!")
                         else:  # if the cross-linear addition is on another page
-                            print("NEXT ADD ON DIFFERENT PAGE!")
+#                            print("NEXT ADD ON DIFFERENT PAGE!")
                             new_page_id = "ox-ms_abinger_" + next_id.split(".")[0]
                             page_root2, page_tree2 = getPageRoot(new_page_id, "page")
                             i2 = page_root2.xpath("//add[@id='{}']".format(next_id))[0]
@@ -485,10 +485,14 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
 #                                if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
 #                                    processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
             if i.tag == "delSpan":  # Breaks out of the line if a deletion spans multiple lines
+                if i.getparent().tag != "line":
+                    print("NESTED delSpan in:", page_id, "path:", page_tree.getelementpath(i))
                 delspan = True
                 delspan_id = i.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
                 return False
             elif i.tag == "addSpan":
+                if i.getparent().tag != "line":
+                    print("NESTED addSpan in:", page_id, "path:", page_tree.getelementpath(i))
                 if i.get("corresp"):
                     if i.get("corresp")[1:] in displ_ids:
                         delspan = True
@@ -498,11 +502,15 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                     prev_hand = hand[:]
                     hand = i.get("hand")[1:]
                     handspan_id = i.get("spanTo")[1:]
-                if i.get("next"):
-                    print("CROSS-LINEAR MODIFICATION in", page_id, "INITIATED IN ADDSPAN!")
+#                if i.get("next"):
+#                    print("CROSS-LINEAR MODIFICATION in", page_id, "INITIATED IN ADDSPAN!")
             elif i.tag == "handShift":
+                if i.getparent().tag != "line":
+                    print("NESTED handShift in:", page_id, "path:", page_tree.getelementpath(i))
                 hand = i.get("new")[1:]
             elif i.tag == "metamark" and (i.get("id") in displ_ids):
+                if i.getparent().tag != "line":
+                    print("NESTED metamark in:", page_id, "path:", page_tree.getelementpath(i))
                 process_text_calls = 0
                 displ_id = i.get("id")
                 if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
@@ -512,15 +520,23 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
 #                    if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
 #                        processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
             elif i.tag == "anchor":
+#                if i.getparent().tag != "line":
+#                    print("NESTED anchor in:", page_id, "path:", page_tree.getelementpath(i))
                 if i.get("id") == displ_end_id:
+#                    if i.getparent().tag != "line":
+#                        print("NESTED delSpan anchor in:", page_id, "path:", page_tree.getelementpath(i))
                     return True
                 anch_id = "#" + i.get("id")
                 if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:  # Checks for anchor in a line and references a different zone
+#                    if i.getparent().tag != "line":
+#                        print("NESTED zone displacement anchor in:", page_id, "path:", page_tree.getelementpath(i))
                     process_text_calls = 0
                     processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
                 else:
                     new_page_id = "ox-ms_abinger_" + anch_id[1:].split(".")[0]
                     if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:  # Checks for referenced zone on different page
+#                        if i.getparent().tag != "line":
+#                            print("NESTED page displacement anchor in:", page_id, "path:", page_tree.getelementpath(i))
                         new_root, new_tree = getPageRoot(new_page_id, "page")
                         if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:
                             process_text_calls = 0
@@ -537,6 +553,8 @@ def processLine(zone_type, anchor_id, line_element, from_index, page_root, page_
                                 processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], displ_ids, 0, 1000)
                     else:  # i.e. if an anchor is not used for displacement purposes
                         if i.get("id") == handspan_id:
+#                            if i.getparent().tag != "line":
+#                                print("NESTED handSpan anchor in:", page_id, "path:", page_tree.getelementpath(i))
                             hand = prev_hand[:]
             if "mod" in page_tree.getelementpath(i.getparent()) or "hi" in page_tree.getelementpath(i.getparent()):  # turned into if "mod" is somewhere upstream; changed from "/".join(page_tree.getelementpath(i).split("/")[:-1])
                 if "del" not in page_tree.getelementpath(i.getparent()):
