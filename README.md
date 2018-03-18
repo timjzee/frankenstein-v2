@@ -10,7 +10,7 @@ This project presents an accessible gold standard text for the authorship attrib
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
 ## To do:
-- add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122
+- add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116
 - add 1818 edition lookup to regular join/separate algo?
 - ~~implement tail text of mod inside of mod, e.g. 57-0039 or mod inside of add, currently only the order of non-hierarchical tags within a mod are handled correctly. What happens in 57-0039 is that only the tail of the nested mod gets printed because all child tags of the nested mod are only checked against the nested mod (the first mod upstream is used)~~
   - ~~include add as a possible upstream parent tag~~
@@ -31,8 +31,8 @@ This project presents an accessible gold standard text for the authorship attrib
   - ~~does this occur across pages? (implemented but not tested)~~
   - ~~addspan tags, e.g 56-0056~~
   - ~~different zone on same page, e.g 56-0056~~
-  - implement printing of (tail)text within children elements of `<add>` --> we need a processElement function which processes mod, add & hi elements
-  - ignore references to another zone, processing of this text is already handled by anchors
+  - ~~implement printing of (tail)text within children elements of `<add>` --> we need a processElement function which processes mod, add & hi elements~~
+  - ~~ignore references to another zone, processing of this text is already handled by anchors~~
   - needs more testing, pages: '56-0011', '56-0005', '56-0006', '56-0008', '56-0014', '56-0010', '56-0022', '56-0034', '56-0038', '56-0075', '56-0079', '56-0082'(2x), '56-0084', '56-00104', '56-0110', '56-0113', '56-0116'(2x), '56-0128', '57-0013', '57-0015', '57-0019', '57-0031', '57-0030', '57-0039', '57-0043', '57-0045', '57-0070', '57-0077', '57-0111', '57-0146', '57-0147', '57-0148', '57-0168'
 - ~~change join/separate algorithm to product of first and second part 56-0022: *in* + *dulged* should be *indulged* because score of dulged is 0~~
 - ~~change word scoring algorithm, final score is product of score and frequency instead of average. This prevents the selection of non-words such as *atthis* in stead of *at* and *this* in 56-0032~~
@@ -119,6 +119,19 @@ This project presents an accessible gold standard text for the authorship attrib
     - ~~processLine still handles anchors, delspans etc. providing these are never nested~~
       - ~~anchors and metamarks are sometimes nested; addspan and delspan aren't~~
       - ~~anchors (for all functions) and metamarks need to be handled in processElement~~
-  - Needs more testing
+  - Needs more testing:
+    - ~~run through all files~~
+    - hand attribution
+      - ~~`<add>`~~
+      - `<addSpan>`
+      - `<handShift>`
+    - test restore
+    - ~~cross-linear additions~~
+    - displacement
+      - ~~different zone~~
+      - ~~different page, 56-0028~~
+      - subzone
+        - ~~on same page, examples: 57-0024, 57-0009~~
+        - on different page, examples 56-0088
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
   - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~
