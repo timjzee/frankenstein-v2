@@ -10,7 +10,9 @@ This project presents an accessible gold standard text for the authorship attrib
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
 ## To do:
-- add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116
+- ignore chapter headings, e.g. 56-0081
+- How do we handle notes by the compositor, e.g. 58-0037
+- add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
 - ~~implement tail text of mod inside of mod, e.g. 57-0039 or mod inside of add, currently only the order of non-hierarchical tags within a mod are handled correctly. What happens in 57-0039 is that only the tail of the nested mod gets printed because all child tags of the nested mod are only checked against the nested mod (the first mod upstream is used)~~
   - ~~include add as a possible upstream parent tag~~
@@ -43,7 +45,7 @@ This project presents an accessible gold standard text for the authorship attrib
   - if curline_par is a number and preceded by a non-number insert a space, e.g. in 58-0001 *th* + *17* --> joined
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
-  - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*
+  - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*; in 58-0049, *hideous* + *-ness*
   - handle capitalization, punctuation
     - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
     - a full stop should also be added before a milestone tag, which represent paragraph breaks
@@ -123,15 +125,16 @@ This project presents an accessible gold standard text for the authorship attrib
     - ~~run through all files~~
     - hand attribution
       - ~~`<add>`~~
-      - `<addSpan>`
-      - `<handShift>`
+      - ~~`<addSpan>`~~
+      - ~~`<handShift>`~~
+      - test across pages
     - test restore
     - ~~cross-linear additions~~
-    - displacement
+    - ~~displacement~~
       - ~~different zone~~
       - ~~different page, 56-0028~~
-      - subzone
+      - ~~subzone~~
         - ~~on same page, examples: 57-0024, 57-0009~~
-        - on different page, examples 56-0088
+        - ~~on different page, examples 56-0088~~
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
   - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~

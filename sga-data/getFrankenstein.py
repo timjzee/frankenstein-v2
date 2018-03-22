@@ -79,7 +79,7 @@ def callDatamuse(word, left_context=None):
 
 def search1818Edition(wrd):
     search_word = re.sub(r'[-"—.–,;:!?()]', '', wrd)
-    find_list = re.findall(r'[-"—.–,;:!?() ]{}[-"—.–,;:!?() ]'.format(search_word), edition_1818)
+    find_list = re.findall(r'[-"—.–,;:!?() ]{}[-"—.–,;:!?() ]'.format(re.escape(search_word)), edition_1818)
     return len(find_list)
 
 
@@ -91,7 +91,7 @@ def testWords(processed_text):
     prevline_part = re.search(r"[^ ]+$", print_text).group()  # finds consecutive line-final non-space characters
     curline_part = re.match(r"[^ ]+", processed_text).group()  # finds consecutive line-initial non-space characters
     if prev_add_processed and (" " not in previous_addition):
-        part_a = re.search(r"[^ ]+(?= *{}$)".format(previous_addition), print_text).group()
+        part_a = re.search(r"[^ ]+(?= *{}$)".format(re.escape(previous_addition)), print_text).group()
         score_a = callDatamuse(part_a)
         score_b = callDatamuse(previous_addition)
         score_c = callDatamuse(curline_part)
@@ -169,16 +169,16 @@ def testWords(processed_text):
                     best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
         print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
         print(best_combo, "REVISION")
-        match_str = re.search(r"{} *{}$".format(part_a, previous_addition), print_text).group()
-        print_text = re.sub(r"{}$".format(match_str), best_combo[1], print_text, count=1)
+        match_str = re.search(r"{} *{}$".format(re.escape(part_a), re.escape(previous_addition)), print_text).group()
+        print_text = re.sub(r"{}$".format(re.escape(match_str)), best_combo[1], print_text, count=1)
         if " " in match_str:
             if "a_b" in best_combo[2]:
                 pass
             elif "ab" in best_combo[2]:
-                print_text_list[-1] = re.sub(r" +{}$".format(previous_addition), previous_addition, print_text_list[-1], count=1)
+                print_text_list[-1] = re.sub(r" +{}$".format(re.escape(previous_addition)), previous_addition, print_text_list[-1], count=1)
         else:
             if "a_b" in best_combo[2]:
-                print_text_list[-1] = re.sub(r"{}$".format(previous_addition), " " + previous_addition, print_text_list[-1], count=1)
+                print_text_list[-1] = re.sub(r"{}$".format(re.escape(previous_addition)), " " + previous_addition, print_text_list[-1], count=1)
             elif "ab" in best_combo[2]:
                 pass
         if "b_c" in best_combo[2]:
@@ -251,7 +251,7 @@ def testWords(processed_text):
         if print_text == "":
             l_context = None
         else:
-            context_object = re.search(r"[^ ]+(?= *{}$)".format(previous_addition), print_text)
+            context_object = re.search(r"[^ ]+(?= *{}$)".format(re.escape(previous_addition)), print_text)
             if context_object:
                 l_context = context_object.group()
             else:
@@ -417,7 +417,7 @@ def getOtherShelley(shelley):
         return "mws"
 
 
-def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_tree, displ_ids, displ_end_id, cross_lin=False):
+def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_tree, displ_end_id, cross_lin=False):
     global delspan
     global delspan_id
     global hand
@@ -426,6 +426,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     global ignore_adds
     global process_text_calls
     global zone_end
+    global displ_ids
     if (("del" not in page_tree.getelementpath(element)) or re.search(r'restore.*del', page_tree.getelementpath(element))) and ((element.get("id") not in ignore_adds) or (cross_lin is True)) and "metamark" not in page_tree.getelementpath(element):
         # print text
         if element.tag == "add" and element.get("hand"):
@@ -441,7 +442,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
             from_anchor = None
         for element_child in element_children:
             if type(element_child) == etree._Element:
-                from_anchor = processElement(zone_type, anchor_id, element_child, from_anchor, page_root, page_tree, displ_ids, displ_end_id)
+                from_anchor = processElement(zone_type, anchor_id, element_child, from_anchor, page_root, page_tree, displ_end_id)
                 if zone_end or delspan:  # step out of recursion if zone_end is encountered
                     return from_anchor
         if element.tag == "add" and element.get("hand"):
@@ -455,12 +456,12 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
             next_add_zone = page_tree.getelementpath(next_add).split("/")[0]
             if cur_add_zone == next_add_zone:  # modifications in another zone are already handled by anchor
                 ignore_adds.append(next_id[1:])
-                from_anchor = processElement(zone_type, anchor_id, next_add, from_anchor, page_root, page_tree, displ_ids, displ_end_id, True)
+                from_anchor = processElement(zone_type, anchor_id, next_add, from_anchor, page_root, page_tree, displ_end_id, True)
     elif element.tag == "metamark" and (element.get("id") in displ_ids):  # handle subzones
         process_text_calls = 0
         displ_id = element.get("id")
         if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
-            processZone(zone_type, anchor_id, page_root, page_tree, displ_id, displ_ids, 0, 1000)
+            processZone(zone_type, anchor_id, page_root, page_tree, displ_id, 0, 1000)
             zone_end = False
     elif element.tag == "anchor":
         if element.get("id") == displ_end_id:  # handle end of subzone
@@ -471,25 +472,26 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
         anch_id = "#" + element.get("id")
         if len(page_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:  # Checks for anchor that references a different zone
             process_text_calls = 0
-            processZone("", anch_id, page_root, page_tree, None, displ_ids, 0, 1000)
+            processZone("", anch_id, page_root, page_tree, None, 0, 1000)
         else:
             new_page_id = "ox-ms_abinger_" + anch_id[1:].split(".")[0]
             if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:  # Checks for referenced text on different page
                 new_root, new_tree = getPageRoot(new_page_id, "page")
                 if len(new_root.xpath("//zone[@corresp='{}']".format(anch_id))) != 0:  # zone on different page
                     process_text_calls = 0
-                    processZone("", anch_id, new_root, new_tree, None, displ_ids, 0, 1000)
+                    processZone("", anch_id, new_root, new_tree, None, 0, 1000)
                 elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anch_id))) != 0:  # subzone on different page
+                    displ_ids.append(element.get("id"))
                     new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anch_id))[0]
                     addspan_parent = new_addspan.getparent()
                     while addspan_parent.tag != "zone":  # get parent zone
                         addspan_parent = addspan_parent.getparent()
                     new_zone_type = addspan_parent.get("type")
                     if new_zone_type != "main":
-                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anch_id[1:], displ_ids, 0, 1000)  # by passing a displacement_id, processZone will get the end_id
+                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anch_id[1:], 0, 1000)  # by passing a displacement_id, processZone will get the end_id
                         zone_end = False
                     else:
-                        processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], displ_ids, 0, 1000)
+                        processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], 0, 1000)
                         zone_end = False
     elif element.tag == "delSpan":  # Breaks out of the line if a deletion spans multiple lines
         delspan = True
@@ -522,7 +524,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     return from_anchor
 
 
-def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page_tree, displ_ids, displ_end_id):
+def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page_tree, displ_end_id):
     global delspan
     global delspan_id
     global hand
@@ -542,12 +544,12 @@ def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page
     for line_child in line_children:
         if type(line_child) == etree._Element:
             if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift"]:
-                from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_ids, displ_end_id)
+                from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_end_id)
             if zone_end or delspan:
                 return
 
 
-def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, displ_ids, from_element, to_element):
+def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, from_element, to_element):
     global delspan
     global delspan_id
     global hand
@@ -555,6 +557,7 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
     global handspan_id
     global ignore_adds
     global zone_end
+    global displ_ids
     zone_att = "type" if zone_type == "main" else "corresp"
     att_value = "main" if zone_att == "type" else anchor_id
     zone = page_root.xpath("//zone[@{}='{}']".format(zone_att, att_value))[0]
@@ -569,7 +572,6 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
     else:
         # from_element = 0  # remove this and add from_element and to_element as parameters
         end_id = None
-        displ_ids = []
         for elem in zone:  # changed from zone.iter() to zone to make indexing easier
             if len(elem.findall(".//metamark[@function='displacement']")) != 0:
                 for displ_mark in elem.findall(".//metamark[@function='displacement']"):
@@ -624,7 +626,7 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
                             hand_anchor_iter_index = [i for i in elem.iter()].index(hand_anchor)
                             if hand_anchor_iter_index < anchor_iter_index:
                                 hand = prev_hand[:]
-                        processLine(zone_type, anchor_id, elem, del_anchor, page_root, page_tree, displ_ids, end_id)
+                        processLine(zone_type, anchor_id, elem, del_anchor, page_root, page_tree, end_id)
                     else:
                         if elem.tag == "anchor" and elem.get("id") == delspan_id:
                             delspan = False
@@ -645,36 +647,37 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
                             delspan = True
                             delspan_id = elem.get("spanTo")[1:]
                     elif elem.tag == "line":
-                        processLine(zone_type, anchor_id, elem, None, page_root, page_tree, displ_ids, end_id)
+                        processLine(zone_type, anchor_id, elem, None, page_root, page_tree, end_id)
                     elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
                         if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
-                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), displ_ids, from_element, to_element)
+                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), from_element, to_element)
                             zone_end = False
     #                    else:
     #                        anchr_id = "#" + elem.get("id")
     #                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-    #                            processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
+    #                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
                     elif elem.tag == "anchor":       # Checks for anchor that is not in a line and references a different zone; removed following code due to iteration change:  and "line" not in page_tree.getelementpath(elem)
                         anchr_id = "#" + elem.get("id")
                         if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                            processZone("", anchr_id, page_root, page_tree, None, displ_ids, 0, 1000)
+                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
                         else:      # Checks for referenced (sub)zone on different page
                             new_page_id = "ox-ms_abinger_" + anchr_id[1:].split(".")[0]
                             if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:
                                 new_root, new_tree = getPageRoot(new_page_id, "page")
                                 if len(new_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                                    processZone("", anchr_id, new_root, new_tree, None, displ_ids, 0, 1000)
+                                    processZone("", anchr_id, new_root, new_tree, None, 0, 1000)
                                 elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))) != 0:
+                                    displ_ids.append(elem.get("id"))
                                     new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))[0]
                                     addspan_parent = new_addspan.getparent()
                                     while addspan_parent.tag != "zone":  # get parent zone
                                         addspan_parent = addspan_parent.getparent()
                                     new_zone_type = addspan_parent.get("type")
                                     if new_zone_type != "main":
-                                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anchr_id[1:], displ_ids, 0, 1000)  # by passing a displacement_id, processZone will get the end_id
+                                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anchr_id[1:], 0, 1000)  # by passing a displacement_id, processZone will get the end_id
                                         zone_end = False
                                     else:
-                                        processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], displ_ids, 0, 1000)
+                                        processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], 0, 1000)
                                         zone_end = False
             else:  # even though these lines are not part of reading text we still want to check them for hand changes
                 if len(elem.findall(".//handShift")) != 0:
@@ -699,7 +702,6 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, dis
 
 
 def processLocus(locus, match_page):
-    global auto_mode
     global page_id
     raw_page_ids = locus.get("target").split(" ")
     page_ids = [i.split("#")[-1] for i in raw_page_ids]
@@ -712,24 +714,24 @@ def processLocus(locus, match_page):
             to_element = int(locus.get("toElement")) - 1
         page_id = page_ids[0]
         root, tree = getPageRoot(page_id, "page")
-        processZone("main", "", root, tree, None, [], from_element, to_element)
+        processZone("main", "", root, tree, None, from_element, to_element)
     else:
         for page_id in page_ids:
-            if not auto_mode:
+            if match_page == "":
+                print("\nProcessing page", page_id, "\n")
+                from_element = 0
+                to_element = 1000
+                root, tree = getPageRoot(page_id, "page")
+                processZone("main", "", root, tree, None, from_element, to_element)
+            else:
                 if page_id == match_page:
                     from_element = 0
                     to_element = 1000
                     root, tree = getPageRoot(page_id, "page")
-                    processZone("main", "", root, tree, None, [], from_element, to_element)
-            else:
-                from_element = 0
-                to_element = 1000
-                root, tree = getPageRoot(page_id, "page")
-                processZone("main", "", root, tree, None, [], from_element, to_element)
+                    processZone("main", "", root, tree, None, from_element, to_element)
 
 
 def processChapter(chap, vol_no):
-    global auto_mode
     chapter_no = chap.get("n")
     if not auto_mode:
         raw_p_ids = []
@@ -737,17 +739,27 @@ def processChapter(chap, vol_no):
             raw_p_ids.extend(locus.get("target").split(" "))
         p_ids = [i[-7:] for i in raw_p_ids]
         if mode_input in ["random", "r", "R"]:
+            t0 = time.time()
             p_id = random.choice(p_ids)
             print("Page ID {}".format(p_id))
+            for loc in chap.findall(".//locus"):
+                if p_id in loc.get("target"):
+                    match_id = "ox-ms_abinger_c" + p_id
+                    processLocus(loc, match_id)
         else:
-            p_id = ""
-            while p_id not in p_ids:
-                p_id = input("Chapter {} contains the following pages:\n{}\nWhich page? ".format(chapter_no, p_ids))
-        t0 = time.time()
-        for loc in chap.findall(".//locus"):
-            if p_id in loc.get("target"):
-                match_id = "ox-ms_abinger_c" + p_id
-                processLocus(loc, match_id)
+            p_input = ""
+            while p_input not in (p_ids + ["all"]):
+                p_input = input("Chapter {} contains the following pages:\n{}\nWhich page? ".format(chapter_no, p_ids + ["all"]))
+            t0 = time.time()
+            if p_input != "all":
+                p_id = p_input[:]
+                for loc in chap.findall(".//locus"):
+                    if p_id in loc.get("target"):
+                        match_id = "ox-ms_abinger_c" + p_id
+                        processLocus(loc, match_id)
+            else:  # automode for a single chapter
+                for loc in chap.findall(".//locus"):
+                    processLocus(loc, "")
         print(print_text)
         print(print_text_list)
         print(hand_list)
@@ -766,7 +778,6 @@ def processChapter(chap, vol_no):
 
 
 def processVolume(vol_no):
-    global auto_mode
     volume_id = "ox-frankenstein-volume_" + vol_no
     vol_root, vol_tree = getPageRoot(volume_id, "volume")
     chapters = vol_root.findall(".//msItem[@class='#chapter']")
@@ -775,12 +786,19 @@ def processVolume(vol_no):
         if mode_input in ["random", "r", "R"]:
             chap_no = random.choice(allowed_chaps)
             print("Chapter {}".format(chap_no))
+            chapter = chapters[allowed_chaps.index(chap_no)]
+            processChapter(chapter, vol_no)
         else:
-            chap_no = ""
-            while chap_no not in allowed_chaps:
-                chap_no = input("Volume {} contains the following chapters:\n{}\nWhich chapter? ".format(vol_no, allowed_chaps))
-        chapter = chapters[allowed_chaps.index(chap_no)]
-        processChapter(chapter, vol_no)
+            chap_input = ""
+            while chap_input not in (allowed_chaps + ["all"]):
+                chap_input = input("Volume {} contains the following chapters:\n{}\nWhich chapter? ".format(vol_no, allowed_chaps + ["all"]))
+            if chap_input != "all":
+                chap_no = chap_input[:]
+                chapter = chapters[allowed_chaps.index(chap_no)]
+                processChapter(chapter, vol_no)
+            else:  # automode for a single volume
+                for chapter in chapters:
+                    processChapter(chapter, vol_no)
     else:
         for chapter in chapters:
             processChapter(chapter, vol_no)
@@ -797,22 +815,26 @@ hand = "mws"
 handspan_id = ""
 previous_addition = ""
 prev_add_processed = False
+displ_ids = []
 with open("frankenstein-1818edition.txt") as f:
     edition_1818 = f.read()
 
 mode_input = ""
-while mode_input not in ["auto", "a", "A", "manual", "m", "M", "random", "r", "R"]:
-    mode_input = input("Mode select: [a]uto / [m]anual / [r]andom ")
-auto_mode = True if mode_input in ["auto", "a", "A"] else False
-if not auto_mode:
-    if mode_input in ["random", "r", "R"]:
-        volume_no = random.choice(["i", "ii", "iii"])
-        print("SELECTING RANDOM PAGE\nVolume {}".format(volume_no))
-    else:
-        volume_no = ""
-        while volume_no not in ["i", "ii", "iii"]:
-            volume_no = input("Which volume? (i/ii/iii) ")
-    processVolume(volume_no)
+while mode_input not in ["choose", "c", "C", "random", "r", "R"]:
+    mode_input = input("Mode select: [c]hoose / [r]andom ")
+if mode_input in ["random", "r", "R"]:
+    auto_mode = False
+    volume_no = random.choice(["i", "ii", "iii"])
+    print("SELECTING RANDOM PAGE\nVolume {}".format(volume_no))
 else:
-    for volume_no in ["i", "ii", "iii"]:
+    volume_input = ""
+    while volume_input not in ["i", "ii", "iii", "all"]:
+        volume_input = input("Which volume? (i/ii/iii/all) ")
+    if volume_input in ["i", "ii", "iii"]:
+        auto_mode = False
+        volume_no = volume_input[:]
         processVolume(volume_no)
+    else:
+        auto_mode = True
+        for volume_no in ["i", "ii", "iii"]:
+            processVolume(volume_no)
