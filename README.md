@@ -5,11 +5,17 @@
 - Text processing: Datamuse API
 
 ## About
-This project presents an accessible gold standard text for the authorship attribution of the 19th century novel *Frankenstein*. The text is constructed from the annotated draft from the Shelley-Godwin Archive (SGA). The TEI .xml files used in the SGA are multifunctional and as such they are not optimized for any single purpose. The files provided in this repository have been constructed with authorship attribution in mind. Some features:
+The main objective of this project is to provide an accessible gold standard text for the authorship attribution of the 19th century novel *Frankenstein*. The text is constructed from the hand annotations of the draft in the Shelley-Godwin Archive (SGA). The TEI .xml files used in the SGA are multifunctional and as such they are not optimized for any single purpose. The files provided in this repository have been constructed with authorship attribution in mind. Some features:
 - Two .json list objects: one with stretches of subsequent text by the same author and one with the corresponding authors
 - Intelligent word parsing using the Datamuse API and dozens of heuristic rules (unfortunately the SGA annotations do not allow for trivial word parsing; as a result the text in this repo contains fewer parsing errors than the reading text on the SGA website)
 
+As a secondary objective this project presents an initial comparison between a stylometric analysis of *Frankenstein* based on other work by Mary and Percy Shelley and the gold standard hand annotation. The analysis will consist of the following:
+- Principal Component Analysis: Influential words in the PCA of other work by Mary and Percy Shelley can be compared to the relative frequency of those words in parts of *Frankenstein* written by Mary and Percy respectively.
+- If enough consecutive text in Percy's hand exists for an acceptable training sample size, a rolling SVM of *Frankenstein* can be attempted and compared to the hand annotation.
+
 ## To do:
+- implement a check on number of Datamuse API calls that pauses the script for 24 hours
+  - record and update daily api calls in a file (so the script "remembers")
 - ignore chapter headings, e.g. 56-0081
 - How do we handle notes by the compositor, e.g. 58-0037
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
@@ -101,6 +107,11 @@ This project presents an accessible gold standard text for the authorship attrib
     - ~~list that consists of consecutive fragments with the same hand~~
     - ~~list with same amount of elements and hand labels that correspond to fragments~~
     - .json format
+    - ask how hand changes within a word should be handled
+      - allow them
+      - or:
+        - if only 1 hand change occurs within a word --> the whole word is attributed to the later hand
+        - if the hand changes back again within a word, e.g. *[and ][t][his problem]* --> the whole word is attributed to the within-word change, e.g. *[and ][this][ problem]*
 - ~~Implement limitations in volume files:~~
   - ~~finish adding fromLine and toLine attributes in volume files~~
   - ~~line counter for use with fromLine and toLine attributes~~
