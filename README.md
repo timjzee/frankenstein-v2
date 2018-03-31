@@ -11,7 +11,9 @@ The main objective of this project is to provide an accessible gold standard tex
 
 As a secondary objective this project presents an initial comparison between a stylometric analysis of *Frankenstein* based on other work by Mary and Percy Shelley and the gold standard hand annotation. The analysis will consist of the following:
 - Principal Component Analysis: Influential words in the PCA of other work by Mary and Percy Shelley can be compared to the relative frequency of those words in parts of *Frankenstein* written by Mary and Percy respectively.
-- If enough consecutive text in Percy's hand exists for an acceptable training sample size, a rolling SVM of *Frankenstein* can be attempted and compared to the hand annotation.
+- A rolling classification of *Frankenstein* can be attempted and compared to the hand annotation.
+
+The tertiary objective of this project relies on the outcome of the rolling classification of *Frankenstein*. Initial tests show that a rolling classification with sample size of 1000 words and an overlap of 900 identifies an authorial shift to Percy towards the end of the novel. This is in line with the hand attribution by Charles Robinson. Interestingly, the rolling classification does not identify this change at a sample size of 5000 words and an overlap of 4500. This suggests that larger sample size may not always be better in authorship attribution of collaborative texts due to a decrease in resolution at larger sample sizes. In other words, smaller sample sizes may be used to increase resolution at the cost of accuracy.
 
 ## To do:
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
