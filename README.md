@@ -18,7 +18,7 @@ The tertiary objective of this project relies on the outcome of the rolling clas
 ## To do:
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
   - record and update daily api calls in a file (so the script "remembers")
-- ignore chapter headings, e.g. 56-0081
+- ~~ignore chapter headings, e.g. 56-0081~~
 - How do we handle notes by the compositor, e.g. 58-0037
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
@@ -51,12 +51,13 @@ The tertiary objective of this project relies on the outcome of the rolling clas
 - ~~get latest page files from SGA repo~~
 - process text:
   - if curline_par is a number and preceded by a non-number insert a space, e.g. in 58-0001 *th* + *17* --> joined
+  - if *th*, *rd*, *st*, *nd* is preceded by a number no space should be inserted
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
   - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*; in 58-0049, *hideous* + *-ness*
   - handle capitalization, punctuation
     - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
-    - a full stop should also be added before a milestone tag, which represent paragraph breaks
+    - ~~a full stop should also be added before a milestone tag, which represent paragraph breaks~~
     - necessary for POS tagging
 - ~~support processing of individual pages (for debugging purposes)~~
 - maybe we need a double-checking mechanism after two consecutive JOIN/SEPARATE operations where the first operation's curline_part corresponds to the second operation's prevline_part

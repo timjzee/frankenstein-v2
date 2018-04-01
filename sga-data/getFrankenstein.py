@@ -493,7 +493,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
                     else:
                         processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], 0, 1000)
                         zone_end = False
-    elif element.tag == "delSpan":  # Breaks out of the line if a deletion spans multiple lines
+    elif element.tag == "delSpan" or (element.tag == "milestone" and element.get("unit") == "tei:head"):  # Breaks out of the line if a deletion spans multiple lines
         delspan = True
         delspan_id = element.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
         return from_anchor
@@ -543,7 +543,7 @@ def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page
         from_anchor = None
     for line_child in line_children:
         if type(line_child) == etree._Element:
-            if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift"]:
+            if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift", "milestone"]:
                 from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_end_id)
             if zone_end or delspan:
                 return
@@ -558,6 +558,8 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
     global ignore_adds
     global zone_end
     global displ_ids
+    global print_text
+    global print_text_list
     zone_att = "type" if zone_type == "main" else "corresp"
     att_value = "main" if zone_att == "type" else anchor_id
     zone = page_root.xpath("//zone[@{}='{}']".format(zone_att, att_value))[0]
@@ -589,6 +591,57 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
                     if elem.tag == "anchor" and elem.get("id") == end_id:
                         zone_end = True
                         continue
+                if not delspan:
+                    if elem.tag == "delSpan":  # marks delSpan that is initiated outside of a line
+                        delspan = True
+                        delspan_id = elem.get("spanTo")[1:]                             # Captures the ID of the anchor that marks the end of the deletion
+                    elif elem.tag == "addSpan" and elem.get("corresp"):  # marks displacement addSpan that is initiated outside of a line
+                        if elem.get("corresp")[1:] in displ_ids and elem.get("corresp")[1:] != displacement_id:
+                            delspan = True
+                            delspan_id = elem.get("spanTo")[1:]
+                    elif elem.tag == "line":
+                        processLine(zone_type, anchor_id, elem, None, page_root, page_tree, end_id)
+                    elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
+                        if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
+                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), from_element, to_element)
+                            zone_end = False
+    #                    else:
+    #                        anchr_id = "#" + elem.get("id")
+    #                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
+    #                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
+                    elif elem.tag == "anchor":       # Checks for anchor that is not in a line and references a different zone; removed following code due to iteration change:  and "line" not in page_tree.getelementpath(elem)
+                        anchr_id = "#" + elem.get("id")
+                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
+                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
+                        else:      # Checks for referenced (sub)zone on different page
+                            new_page_id = "ox-ms_abinger_" + anchr_id[1:].split(".")[0]
+                            if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:
+                                new_root, new_tree = getPageRoot(new_page_id, "page")
+                                if len(new_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
+                                    processZone("", anchr_id, new_root, new_tree, None, 0, 1000)
+                                elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))) != 0:
+                                    displ_ids.append(elem.get("id"))
+                                    new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))[0]
+                                    addspan_parent = new_addspan.getparent()
+                                    while addspan_parent.tag != "zone":  # get parent zone
+                                        addspan_parent = addspan_parent.getparent()
+                                    new_zone_type = addspan_parent.get("type")
+                                    if new_zone_type != "main":
+                                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anchr_id[1:], 0, 1000)  # by passing a displacement_id, processZone will get the end_id
+                                        zone_end = False
+                                    else:
+                                        processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], 0, 1000)
+                                        zone_end = False
+                    elif elem.tag == "milestone" and elem.get("unit") == "tei:p" and len(print_text) > 0:
+                        print("MILESTONE!")
+                        if print_text[-1] in [".", ",", ":", ";", "!", "?", '"']:
+                            print_text += " "
+                            print_text_list[-1] += " "
+                        elif print_text[-1] == " ":
+                            pass
+                        else:
+                            print_text += ". "
+                            print_text_list[-1] += ". "
                 if delspan:
                     if len(elem.findall(".//delSpan")) != 0:
                         old_delspan_anchor = zone.findall(".//anchor[@id='{}']".format(delspan_id))[0]
@@ -638,47 +691,6 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
                             handspan_id = elem.findall(".//addSpan")[0].get("spanTo")[1:]
                         if len(elem.findall(".//anchor")) != 0 and elem.findall(".//anchor")[0].get("id") == handspan_id:
                             hand = prev_hand[:]
-                else:
-                    if elem.tag == "delSpan":  # marks delSpan that is initiated outside of a line
-                        delspan = True
-                        delspan_id = elem.get("spanTo")[1:]                             # Captures the ID of the anchor that marks the end of the deletion
-                    elif elem.tag == "addSpan" and elem.get("corresp"):  # marks displacement addSpan that is initiated outside of a line
-                        if elem.get("corresp")[1:] in displ_ids and elem.get("corresp")[1:] != displacement_id:
-                            delspan = True
-                            delspan_id = elem.get("spanTo")[1:]
-                    elif elem.tag == "line":
-                        processLine(zone_type, anchor_id, elem, None, page_root, page_tree, end_id)
-                    elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
-                        if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
-                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), from_element, to_element)
-                            zone_end = False
-    #                    else:
-    #                        anchr_id = "#" + elem.get("id")
-    #                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-    #                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
-                    elif elem.tag == "anchor":       # Checks for anchor that is not in a line and references a different zone; removed following code due to iteration change:  and "line" not in page_tree.getelementpath(elem)
-                        anchr_id = "#" + elem.get("id")
-                        if len(page_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                            processZone("", anchr_id, page_root, page_tree, None, 0, 1000)
-                        else:      # Checks for referenced (sub)zone on different page
-                            new_page_id = "ox-ms_abinger_" + anchr_id[1:].split(".")[0]
-                            if new_page_id != page_id and "ox-ms_abinger_c5" in new_page_id:
-                                new_root, new_tree = getPageRoot(new_page_id, "page")
-                                if len(new_root.xpath("//zone[@corresp='{}']".format(anchr_id))) != 0:
-                                    processZone("", anchr_id, new_root, new_tree, None, 0, 1000)
-                                elif len(new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))) != 0:
-                                    displ_ids.append(elem.get("id"))
-                                    new_addspan = new_root.xpath("//addSpan[@corresp='{}']".format(anchr_id))[0]
-                                    addspan_parent = new_addspan.getparent()
-                                    while addspan_parent.tag != "zone":  # get parent zone
-                                        addspan_parent = addspan_parent.getparent()
-                                    new_zone_type = addspan_parent.get("type")
-                                    if new_zone_type != "main":
-                                        processZone(new_zone_type, addspan_parent.get("corresp"), new_root, new_tree, anchr_id[1:], 0, 1000)  # by passing a displacement_id, processZone will get the end_id
-                                        zone_end = False
-                                    else:
-                                        processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], 0, 1000)
-                                        zone_end = False
             else:  # even though these lines are not part of reading text we still want to check them for hand changes
                 if len(elem.findall(".//handShift")) != 0:
                     hand = elem.findall(".//handShift")[0].get("new")[1:]
