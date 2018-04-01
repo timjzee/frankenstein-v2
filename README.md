@@ -15,11 +15,12 @@ As a secondary objective this project presents an initial comparison between a s
 
 The tertiary objective of this project relies on the outcome of the rolling classification of *Frankenstein*. Initial tests show that a rolling classification with sample size of 1000 words and an overlap of 900 identifies an authorial shift to Percy towards the end of the novel. This is in line with the hand attribution by Charles Robinson. Interestingly, the rolling classification does not identify this change at a sample size of 5000 words and an overlap of 4500. This suggests that larger sample size may not always be better in authorship attribution of collaborative texts due to a decrease in resolution at larger sample sizes. In other words, smaller sample sizes may be used to increase resolution at the cost of accuracy.
 
-## To do:
+## To do (crucial items in __bold__):
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
   - record and update daily api calls in a file (so the script "remembers")
 - ~~ignore chapter headings, e.g. 56-0081~~
-- How do we handle notes by the compositor, e.g. 58-0037
+- __remove quotation marks that are within words due to EOL split__
+- __How do we handle notes by the compositor, e.g. 58-0037__
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
 - ~~implement tail text of mod inside of mod, e.g. 57-0039 or mod inside of add, currently only the order of non-hierarchical tags within a mod are handled correctly. What happens in 57-0039 is that only the tail of the nested mod gets printed because all child tags of the nested mod are only checked against the nested mod (the first mod upstream is used)~~
@@ -54,7 +55,8 @@ The tertiary objective of this project relies on the outcome of the rolling clas
   - if *th*, *rd*, *st*, *nd* is preceded by a number no space should be inserted
   - ~~remove redundant newlines, spaces~~
   - ~~handle EOL hyphens~~
-  - handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*; in 58-0049, *hideous* + *-ness*
+  - __handle EOL + SOL, e.g. in 56-0068, *in-* + *-supportable*; and SOL hyphens, e.g. in 56-0115, *dis* + *-turb*; in 58-0049, *hideous* + *-ness*__
+  - __convert & to and in post processing__
   - handle capitalization, punctuation
     - a full stop should be added when the first word of a line starts with an uppercase letter that is not *I*, a name, or part of initials / a title
     - ~~a full stop should also be added before a milestone tag, which represent paragraph breaks~~
@@ -92,7 +94,7 @@ The tertiary objective of this project relies on the outcome of the rolling clas
       - ~~make left context an optional parameter in callDatamuse, so that we don't have to implement it in double-checking mechanism yet~~
   - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
 - ~~add text from `<unclear>` and `<damage>` (e.g. 57-0111)~~ and `<retrace>` (e.g. 57-0013) tags
-  - should we process text from `<unclear>`? See example in guidelines
+  - __should we process text from `<unclear>`? See example in guidelines__
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
@@ -109,8 +111,8 @@ The tertiary objective of this project relies on the outcome of the rolling clas
   - output:
     - ~~list that consists of consecutive fragments with the same hand~~
     - ~~list with same amount of elements and hand labels that correspond to fragments~~
-    - .json format
-    - ask how hand changes within a word should be handled
+    - __.json format__
+    - __ask how hand changes within a word should be handled__
       - allow them
       - or:
         - if only 1 hand change occurs within a word --> the whole word is attributed to the later hand
@@ -151,4 +153,4 @@ The tertiary objective of this project relies on the outcome of the rolling clas
         - ~~on same page, examples: 57-0024, 57-0009~~
         - ~~on different page, examples 56-0088~~
 - Do we want to correct shortcomings/mistakes of tei annotations or do we just follow the SGA reading text?
-  - using metamarks rather than anchors to reference displacements from another zone e.g. ~~56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~
+  - ~~using metamarks rather than anchors to reference displacements from another zone e.g. 56-0011 and 57-0103 '56-0012', '56-0025', '56-0031', '56-0039', '56-0045', '56-0048', '56-0058', '56-0059', '56-0060', '56-0063', '56-0069', '56-0071', '56-0071', '56-0076', '56-0077', '56-0079', '56-0082', '56-0083', '56-0087', '56-0088', '56-0093', '56-0099', '56-0111', '56-0112', '56-0113', '56-0115', '57-0005', '57-0010', '57-0012', '57-0021', '57-0022', '57-0037', '57-0037', '57-0038', '57-0040', '57-0041', '57-0041', '57-0042', '57-0049', '57-0059', '57-0074', '57-0098', '57-0159', '57-0161', '57-0169', '57-0183', '57-0183'~~
