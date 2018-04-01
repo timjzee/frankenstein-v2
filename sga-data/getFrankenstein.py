@@ -427,7 +427,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     global process_text_calls
     global zone_end
     global displ_ids
-    if (("del" not in page_tree.getelementpath(element)) or re.search(r'restore.*del', page_tree.getelementpath(element))) and ((element.get("id") not in ignore_adds) or (cross_lin is True)) and "metamark" not in page_tree.getelementpath(element):
+    if (("del" not in page_tree.getelementpath(element)) or re.search(r'restore.*del', page_tree.getelementpath(element))) and ((element.get("id") not in ignore_adds) or (cross_lin is True)) and "metamark" not in page_tree.getelementpath(element) and ("unclear" not in page_tree.getelementpath(element) or len(element.text) == 1):
         # print text
         if element.tag == "add" and element.get("hand"):
             prev_hand = hand[:]

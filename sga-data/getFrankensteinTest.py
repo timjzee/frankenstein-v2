@@ -511,6 +511,8 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     elif element.tag == "handShift":
         print("    nested handShift in", page_id)
         hand = element.get("new")[1:]
+    elif element.tag == "unclear":
+        print("    UNCLEAR!!")
     # print tail text
     if (("del" not in page_tree.getelementpath(element.getparent())) or re.search(r'restore.*del', page_tree.getelementpath(element.getparent()))) and "metamark" not in page_tree.getelementpath(element.getparent()):
         if element.tag == "add" and element.get("id") and len(page_root.xpath("//add[@next='{}']".format("#" + element.get("id")))) != 0:  # i.e. don't process tail if it is a cross-linear addition

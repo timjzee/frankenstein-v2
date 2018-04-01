@@ -94,7 +94,9 @@ The tertiary objective of this project relies on the outcome of the rolling clas
       - ~~make left context an optional parameter in callDatamuse, so that we don't have to implement it in double-checking mechanism yet~~
   - ~~if curline_part ends in a punctuation mark, ignore that mark when calling datamuse (this prevents incorrect separations)~~
 - ~~add text from `<unclear>` and `<damage>` (e.g. 57-0111)~~ and `<retrace>` (e.g. 57-0013) tags
-  - __should we process text from `<unclear>`? See example in guidelines__
+  - ~~__should we process text from `<unclear>`? See example in guidelines__~~
+    - ~~only if text is 1 character (these are punctuation marks)~~
+    - ~~words are ommitted in 1818 version~~
 - ~~add functionality for references to displaced text within same zone:~~
   - ~~scan zone for displacements in processZone,~~
     - ~~look for metamark function="displacement" with an xml:id~~
