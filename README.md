@@ -21,6 +21,8 @@ The tertiary objective of this project relies on the outcome of the rolling clas
 - ~~ignore chapter headings, e.g. 56-0081~~
 - ~~__remove quotation marks that are within words due to EOL split, e.g. in 56-0068__~~
 - __How do we handle notes by the compositor, e.g. 58-0037__
+  - use milestone annotation as delspan
+  - replace all comp annotations with mws annotations in post processing
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
 - ~~implement tail text of mod inside of mod, e.g. 57-0039 or mod inside of add, currently only the order of non-hierarchical tags within a mod are handled correctly. What happens in 57-0039 is that only the tail of the nested mod gets printed because all child tags of the nested mod are only checked against the nested mod (the first mod upstream is used)~~

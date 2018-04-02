@@ -442,7 +442,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     global process_text_calls
     global zone_end
     global displ_ids
-    if (("del" not in page_tree.getelementpath(element)) or re.search(r'restore.*del', page_tree.getelementpath(element))) and ((element.get("id") not in ignore_adds) or (cross_lin is True)) and "metamark" not in page_tree.getelementpath(element) and ("unclear" not in page_tree.getelementpath(element) or len(element.text) == 1):
+    if (("del" not in page_tree.getelementpath(element)) or re.search(r'restore.*del', page_tree.getelementpath(element))) and ((element.get("id") not in ignore_adds) or (cross_lin is True)) and "metamark" not in page_tree.getelementpath(element) and ("unclear" not in page_tree.getelementpath(element) or element.text in [".", ",", "!", "?", ":", ";", "&", "—", "–", '"', "'"]):
         # print text
         if element.tag == "add" and element.get("hand"):
             prev_hand = hand[:]
@@ -508,7 +508,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
                     else:
                         processZone(new_zone_type, "", new_root, new_tree, anch_id[1:], 0, 1000)
                         zone_end = False
-    elif element.tag == "delSpan" or (element.tag == "milestone" and element.get("unit") == "tei:head"):  # Breaks out of the line if a deletion spans multiple lines
+    elif element.tag == "delSpan" or (element.tag == "milestone" and element.get("unit") in ["tei:head", "tei:note"]):  # Breaks out of the line if a deletion spans multiple lines
         delspan = True
         delspan_id = element.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
         return from_anchor
