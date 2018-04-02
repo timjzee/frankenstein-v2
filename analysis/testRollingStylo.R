@@ -2,7 +2,7 @@ library(stylo)
 
 setwd("/Users/tim/GitHub/frankenstein-v2/analysis")
 
-results = rolling.classify(write.png.file = FALSE, 
+results = rolling.classify(write.png.file = TRUE, 
                  classification.method = "svm", mfw = 100,
                  training.set.sampling = "normal.sampling",
                  slice.size = 1000, slice.overlap = 900)

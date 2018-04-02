@@ -297,6 +297,8 @@ def testWords(processed_text):
                 print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
                 print("#" + processed_text + "# - O")
         else:  # if joined score >= separated score
+            if processed_text[0] == '"':
+                processed_text = processed_text[1:]  # remove quotation marks that are within words due to EOL split
             if hand == hand_list[-1]:
                 print_text_list[-1] += processed_text
             else:
@@ -306,6 +308,7 @@ def testWords(processed_text):
             print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
             print("#" + processed_text + "# - P")
     prev_add_processed = True
+    return processed_text  # makes sure previous_addition does not contain word internal quotation marks
 
 
 def processText(raw_text, mod_status):
@@ -325,7 +328,7 @@ def processText(raw_text, mod_status):
     if process_text_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
         if print_text[-1] == "-":
             prev_add_processed = False
-            if new_text[0] == "-":
+            if new_text[0] in ["-", '"']:
                 new_text = new_text[1:]
             if hand == hand_list[-1]:
                 print_text_list[-1] = print_text_list[-1][:-1] + new_text
@@ -383,7 +386,7 @@ def processText(raw_text, mod_status):
                 print_text += new_text
                 print("#" + new_text + "# - F")
             else:  # determine whether two parts are words
-                testWords(new_text)
+                new_text = testWords(new_text)
     else:
         if print_text != "" and new_text != "":
             if print_text[-1] == " " and new_text[0] == " ":
@@ -398,7 +401,7 @@ def processText(raw_text, mod_status):
                     print("#" + new_text + "# - Q")
             else:
                 if print_text[-1] != " " and new_text[0] != " ":
-                    testWords(new_text)
+                    new_text = testWords(new_text)
                 else:
                     if new_text != " ":
                         prev_add_processed = False

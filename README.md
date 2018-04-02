@@ -19,7 +19,7 @@ The tertiary objective of this project relies on the outcome of the rolling clas
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
   - record and update daily api calls in a file (so the script "remembers")
 - ~~ignore chapter headings, e.g. 56-0081~~
-- __remove quotation marks that are within words due to EOL split, e.g. in 56-0068__
+- ~~__remove quotation marks that are within words due to EOL split, e.g. in 56-0068__~~
 - __How do we handle notes by the compositor, e.g. 58-0037__
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
