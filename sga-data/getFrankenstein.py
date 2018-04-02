@@ -6,6 +6,7 @@ import sys
 import random
 import math
 import time
+import json
 
 
 def removeNamespaces(xml_file):
@@ -104,13 +105,13 @@ def testWords(processed_text):
         combo_abc = (score_abc * score_abc * score_abc, part_a + previous_addition + processed_text, "abc")
         if combo_abc[0] > 0:
             best_combo = combo_abc
-            print("combo 1")
+            writeLog("combo 1")
         elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", part_a.lower()):  # if one or more consecutive consonants in part_a
             best_combo = max(combo_ab_c, combo_abc)
-            print("combo 3")
-            print("algo 1")
+            writeLog("combo 3")
+            writeLog("algo 1")
             if best_combo[0] == 0:  # if both scores are 0 search in 1818 edition
-                print("algo 2")
+                writeLog("algo 2")
                 count_c = search1818Edition(curline_part) if score_c == 0 else score_c
                 count_ab = search1818Edition(part_a + previous_addition) if score_ab == 0 else score_ab
                 count_abc = search1818Edition(part_a + previous_addition + curline_part)
@@ -118,16 +119,16 @@ def testWords(processed_text):
                 combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_ab_c, combo_abc)
                 if best_combo[0] == 0:  # if both scores are 0 fall back on old algorithm
-                    print("algo 3")
+                    writeLog("algo 3")
                     combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
                     combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
                     best_combo = max(combo_ab_c, combo_abc)
         elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", previous_addition.lower()):  # if one or more consecutive consonants in part_b
-            print("combo 2")
-            print("algo 1")
+            writeLog("combo 2")
+            writeLog("algo 1")
             best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
             if best_combo[0] == 0:  # if all scores are 0 search in 1818 edition
-                print("algo 2")
+                writeLog("algo 2")
                 count_a = search1818Edition(part_a) if score_a == 0 else score_a
                 count_c = search1818Edition(curline_part) if score_c == 0 else score_c
                 count_ab = search1818Edition(part_a + previous_addition) if score_ab == 0 else score_ab
@@ -138,17 +139,17 @@ def testWords(processed_text):
                 combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
                 if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
-                    print("algo 3")
+                    writeLog("algo 3")
                     combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
                     combo_a_bc = ((score_a + score_bc), part_a + " " + previous_addition + processed_text, "a_bc")
                     combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
                     best_combo = max(combo_a_bc, combo_ab_c, combo_abc)
         else:
             best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
-            print("combo 4")
-            print("algo 1")
+            writeLog("combo 4")
+            writeLog("algo 1")
             if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
-                print("algo 2")
+                writeLog("algo 2")
                 count_a = search1818Edition(part_a) if score_a == 0 else score_a
                 count_b = search1818Edition(previous_addition) if score_b == 0 else score_b
                 count_c = search1818Edition(curline_part) if score_c == 0 else score_c
@@ -161,14 +162,14 @@ def testWords(processed_text):
                 combo_abc = (count_abc * count_abc, part_a + previous_addition + processed_text, "abc")
                 best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
                 if best_combo[0] == 0:  # if all scores are 0 fall back on old algorithm
-                    print("algo 3")
+                    writeLog("algo 3")
                     combo_a_b_c = ((score_a + score_b + score_c), part_a + " " + previous_addition + " " + processed_text, "a_b_c")
                     combo_ab_c = ((score_ab + score_c), part_a + previous_addition + " " + processed_text, "ab_c")
                     combo_a_bc = ((score_a + score_bc), part_a + " " + previous_addition + processed_text, "a_bc")
                     combo_abc = (score_abc, part_a + previous_addition + processed_text, "abc")
                     best_combo = max(combo_a_b_c, combo_a_bc, combo_ab_c, combo_abc)
-        print("#" + part_a + "#", "#" + previous_addition + "#", "#" + curline_part + "#")
-        print(best_combo, "REVISION")
+        writeLog("#" + part_a + "# #" + previous_addition + "# #" + curline_part + "#")
+        writeLog("{} REVISION".format(best_combo))
         match_str = re.search(r"{} *{}$".format(re.escape(part_a), re.escape(previous_addition)), print_text).group()
         print_text = re.sub(r"{}$".format(re.escape(match_str)), best_combo[1], print_text, count=1)
         if " " in match_str:
@@ -200,8 +201,8 @@ def testWords(processed_text):
             print_text_list.append(" " + processed_text)
             hand_list.append(hand)
         print_text += " " + processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-        print("#" + processed_text + "# - G")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " SEPARATED")  # Debug output
+        writeLog("#" + processed_text + "# - G")
     elif len(prevline_part) == 1 and re.fullmatch(r"[^Ia&0-9]", prevline_part):
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -209,8 +210,8 @@ def testWords(processed_text):
             print_text_list.append(processed_text)
             hand_list.append(hand)
         print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - H")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+        writeLog("#" + processed_text + "# - H")
     elif curline_part in ["I", "&"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += " " + processed_text
@@ -218,8 +219,8 @@ def testWords(processed_text):
             print_text_list.append(" " + processed_text)
             hand_list.append(hand)
         print_text += " " + processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-        print("#" + processed_text + "# - I")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " SEPARATED")  # Debug output
+        writeLog("#" + processed_text + "# - I")
     elif curline_part in [".", ",", "?", ":", "!", ";"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -227,8 +228,8 @@ def testWords(processed_text):
             print_text_list.append(processed_text)
             hand_list.append(hand)
         print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - J")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+        writeLog("#" + processed_text + "# - J")
     elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -236,8 +237,8 @@ def testWords(processed_text):
             print_text_list.append(processed_text)
             hand_list.append(hand)
         print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - K")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+        writeLog("#" + processed_text + "# - K")
     elif len(curline_part) == len(processed_text) == len(previous_addition) == 1 and previous_addition not in [" ", "&", ".", ";", ".", "I"]:  # if the added text and the previously added text both consist of a single letter it is likely to be part of a within-word alteration
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -245,8 +246,8 @@ def testWords(processed_text):
             print_text_list.append(processed_text)
             hand_list.append(hand)
         print_text += processed_text
-        print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - L")
+        writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+        writeLog("#" + processed_text + "# - L")
     else:
         if print_text == "":
             l_context = None
@@ -275,8 +276,8 @@ def testWords(processed_text):
                 print_text_list.append(" " + processed_text)
                 hand_list.append(hand)
             print_text += " " + processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - M")
+            writeLog("prev: " + prevline_part + " cur: " + curline_part + " SEPARATED")  # Debug output
+            writeLog("#" + processed_text + "# - M")
         elif (prevline_part_score * curline_part_score) == (combined_score * combined_score) and combined_score == 0:  # fall back on old algorithm
             if ((prevline_part_score + curline_part_score) / 2) > combined_score:  # changed algorithm from mean to product of parts
                 if hand == hand_list[-1]:
@@ -285,8 +286,8 @@ def testWords(processed_text):
                     print_text_list.append(" " + processed_text)
                     hand_list.append(hand)
                 print_text += " " + processed_text
-                print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-                print("#" + processed_text + "# - N")
+                writeLog("prev: " + prevline_part + " cur: " + curline_part + " SEPARATED")  # Debug output
+                writeLog("#" + processed_text + "# - N")
             else:
                 if hand == hand_list[-1]:
                     print_text_list[-1] += processed_text
@@ -294,8 +295,8 @@ def testWords(processed_text):
                     print_text_list.append(processed_text)
                     hand_list.append(hand)
                 print_text += processed_text
-                print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-                print("#" + processed_text + "# - O")
+                writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+                writeLog("#" + processed_text + "# - O")
         else:  # if joined score >= separated score
             if processed_text[0] == '"':
                 processed_text = processed_text[1:]  # remove quotation marks that are within words due to EOL split
@@ -305,8 +306,8 @@ def testWords(processed_text):
                 print_text_list.append(processed_text)
                 hand_list.append(hand)
             print_text += processed_text
-            print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - P")
+            writeLog("prev: " + prevline_part + " cur: " + curline_part + " JOINED")  # Debug output
+            writeLog("#" + processed_text + "# - P")
     prev_add_processed = True
     return processed_text  # makes sure previous_addition does not contain word internal quotation marks
 
@@ -337,7 +338,7 @@ def processText(raw_text, mod_status):
                 print_text_list.append(new_text)
                 hand_list.append(hand)
             print_text = print_text[:-1] + new_text
-            print("#" + new_text + "# - A")
+            writeLog("#" + new_text + "# - A")
         elif print_text[-1] == " ":
             prev_add_processed = False
             if hand == hand_list[-1]:
@@ -346,7 +347,7 @@ def processText(raw_text, mod_status):
                 print_text_list.append(new_text)
                 hand_list.append(hand)
             print_text += new_text
-            print("#" + new_text + "# - B")
+            writeLog("#" + new_text + "# - B")
         elif print_text[-1] in [".", ",", "!", "?", ":", ";", '"']:
             prev_add_processed = False
             if new_text[0] == " ":
@@ -356,7 +357,7 @@ def processText(raw_text, mod_status):
                     print_text_list.append(new_text)
                     hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - C")
+                writeLog("#" + new_text + "# - C")
             else:
                 if hand == hand_list[-1]:
                     print_text_list[-1] += " " + new_text
@@ -364,7 +365,7 @@ def processText(raw_text, mod_status):
                     print_text_list.append(" " + new_text)
                     hand_list.append(hand)
                 print_text += " " + new_text
-                print("#" + new_text + "# - D")
+                writeLog("#" + new_text + "# - D")
         else:
             if new_text[0] == " ":
                 prev_add_processed = False
@@ -374,7 +375,7 @@ def processText(raw_text, mod_status):
                     print_text_list.append(new_text)
                     hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - E")
+                writeLog("#" + new_text + "# - E")
             elif new_text[0] == "-":
                 prev_add_processed = False
                 new_text = new_text[1:]
@@ -384,7 +385,7 @@ def processText(raw_text, mod_status):
                     print_text_list.append(new_text)
                     hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - F")
+                writeLog("#" + new_text + "# - F")
             else:  # determine whether two parts are words
                 new_text = testWords(new_text)
     else:
@@ -398,7 +399,7 @@ def processText(raw_text, mod_status):
                         print_text_list.append(new_text[1:])
                         hand_list.append(hand)
                     print_text += new_text[1:]
-                    print("#" + new_text + "# - Q")
+                    writeLog("#" + new_text + "# - Q")
             else:
                 if print_text[-1] != " " and new_text[0] != " ":
                     new_text = testWords(new_text)
@@ -411,14 +412,14 @@ def processText(raw_text, mod_status):
                             print_text_list.append(new_text)
                             hand_list.append(hand)
                         print_text += new_text
-                        print("#" + new_text + "# - R")
+                        writeLog("#" + new_text + "# - R")
         else:
             if print_text == "":  # i.e. if it is the first text to be added
                 prev_add_processed = False
                 print_text_list.append(new_text)
                 hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - S")
+                writeLog("#" + new_text + "# - S")
     if new_text in ["", " "]:
         process_text_calls -= 1
     if new_text != "":
@@ -648,7 +649,7 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
                                         processZone(new_zone_type, "", new_root, new_tree, anchr_id[1:], 0, 1000)
                                         zone_end = False
                     elif elem.tag == "milestone" and elem.get("unit") == "tei:p" and len(print_text) > 0:
-                        print("MILESTONE!")
+                        writeLog("MILESTONE!")
                         if print_text[-1] in [".", ",", ":", ";", "!", "?", '"']:
                             print_text += " "
                             print_text_list[-1] += " "
@@ -740,12 +741,13 @@ def processLocus(locus, match_page):
         if locus.get("toElement"):
             to_element = int(locus.get("toElement")) - 1
         page_id = page_ids[0]
+        writeLog("\nProcessing page {} From: {} To: {}\n".format(page_id, from_element, to_element))
         root, tree = getPageRoot(page_id, "page")
         processZone("main", "", root, tree, None, from_element, to_element)
     else:
         for page_id in page_ids:
             if match_page == "":
-                print("\nProcessing page", page_id, "\n")
+                writeLog("\nProcessing page {}\n".format(page_id))
                 from_element = 0
                 to_element = 1000
                 root, tree = getPageRoot(page_id, "page")
@@ -759,6 +761,7 @@ def processLocus(locus, match_page):
 
 
 def processChapter(chap, vol_no):
+    global t0
     chapter_no = chap.get("n")
     if not auto_mode:
         raw_p_ids = []
@@ -768,7 +771,7 @@ def processChapter(chap, vol_no):
         if mode_input in ["random", "r", "R"]:
             t0 = time.time()
             p_id = random.choice(p_ids)
-            print("Page ID {}".format(p_id))
+            writeLog("Page ID {}".format(p_id))
             for loc in chap.findall(".//locus"):
                 if p_id in loc.get("target"):
                     match_id = "ox-ms_abinger_c" + p_id
@@ -787,24 +790,26 @@ def processChapter(chap, vol_no):
             else:  # automode for a single chapter
                 for loc in chap.findall(".//locus"):
                     processLocus(loc, "")
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        print("\nNumber of Datamuse API calls:", dict_call_counter)
-        t1 = time.time()
-        print("Script duration:", t1 - t0)
+#        print(print_text)
+#        print(print_text_list)
+#        print(hand_list)
+#        print("\nNumber of Datamuse API calls:", dict_call_counter)
+#        t1 = time.time()
+#        print("Script duration:", t1 - t0)
     else:
         for loc in chap.findall(".//locus"):
             processLocus(loc, "")
-        print(print_text)
-        print(print_text_list)
-        print(hand_list)
-        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
-        if continue_script not in ["y", "Y"]:
-            sys.exit()
+#        print(print_text)
+#        print(print_text_list)
+#        print(hand_list)
+#        continue_script = input("\nNumber of Datamuse API calls: {}\nVolume: {} Chapter: {}\nContinue? (y/n) ".format(dict_call_counter, vol_no, chapter_no))
+#        if continue_script not in ["y", "Y"]:
+#            sys.exit()
 
 
 def processVolume(vol_no):
+    global t0
+    global auto_mode
     volume_id = "ox-frankenstein-volume_" + vol_no
     vol_root, vol_tree = getPageRoot(volume_id, "volume")
     chapters = vol_root.findall(".//msItem[@class='#chapter']")
@@ -812,7 +817,7 @@ def processVolume(vol_no):
         allowed_chaps = [ch.get("n") for ch in chapters]
         if mode_input in ["random", "r", "R"]:
             chap_no = random.choice(allowed_chaps)
-            print("Chapter {}".format(chap_no))
+            writeLog("Chapter {}".format(chap_no))
             chapter = chapters[allowed_chaps.index(chap_no)]
             processChapter(chapter, vol_no)
         else:
@@ -824,11 +829,19 @@ def processVolume(vol_no):
                 chapter = chapters[allowed_chaps.index(chap_no)]
                 processChapter(chapter, vol_no)
             else:  # automode for a single volume
+                t0 = time.time()
+                auto_mode = True
                 for chapter in chapters:
                     processChapter(chapter, vol_no)
     else:
         for chapter in chapters:
             processChapter(chapter, vol_no)
+
+
+def writeLog(message):
+    with open("./output/log.txt", "a") as f:
+        f.write(message + "\n")
+    print(message)
 
 
 dict_call_counter = 0
@@ -846,13 +859,18 @@ displ_ids = []
 with open("frankenstein-1818edition.txt") as f:
     edition_1818 = f.read()
 
+with open("./output/log.txt", "w") as f:
+    f.write("Script initiated at {}\n".format(time.time()))
+
 mode_input = ""
 while mode_input not in ["choose", "c", "C", "random", "r", "R"]:
     mode_input = input("Mode select: [c]hoose / [r]andom ")
 if mode_input in ["random", "r", "R"]:
+    t0 = time.time()
     auto_mode = False
     volume_no = random.choice(["i", "ii", "iii"])
-    print("SELECTING RANDOM PAGE\nVolume {}".format(volume_no))
+    writeLog("SELECTING RANDOM PAGE\nVolume {}".format(volume_no))
+    processVolume(volume_no)
 else:
     volume_input = ""
     while volume_input not in ["i", "ii", "iii", "all"]:
@@ -862,6 +880,24 @@ else:
         volume_no = volume_input[:]
         processVolume(volume_no)
     else:
+        t0 = time.time()
         auto_mode = True
         for volume_no in ["i", "ii", "iii"]:
             processVolume(volume_no)
+
+print(print_text)
+print(print_text_list)
+print(hand_list)
+
+with open("./output/text.txt", "w") as f:
+    f.write(print_text)
+
+with open("./output/text_list.json", "w") as f:
+    f.write(json.dumps(print_text_list))
+
+with open("./output/hand_list.json", "w") as f:
+    f.write(json.dumps(hand_list))
+
+writeLog("\nNumber of Datamuse API calls: {}".format(dict_call_counter))
+t1 = time.time()
+writeLog("Script duration: {}".format(t1 - t0))

@@ -15,13 +15,26 @@ As a secondary objective this project presents an initial comparison between a s
 
 The tertiary objective of this project relies on the outcome of the rolling classification of *Frankenstein*. Initial tests show that a rolling classification with sample size of 1000 words and an overlap of 900 identifies an authorial shift to Percy towards the end of the novel. This is in line with the hand attribution by Charles Robinson. Interestingly, the rolling classification does not identify this change at a sample size of 5000 words and an overlap of 4500. This suggests that larger sample size may not always be better in authorship attribution of collaborative texts due to a decrease in resolution at larger sample sizes. In other words, smaller sample sizes may be used to increase resolution at the cost of accuracy.
 
+## Notes on composition
+The presented text has been composed so as to resemble the 1818 edition of the novel while maintaining insight in the contribution of Percy Shelley. As such, the text is taken from the 1816-1817 draft up until the last few pages of Chapter 18. From that point onwards the text has been taken from the Fair Copy so that Percy's contributions to those final pages are reflected in the final text. As Robinson (2008, p. 29) notes:
+
+>As we move from the extant *1816-1817 Draft* to the first edition of *1818*, we note the following differences: minor changes that Mary Shelley made to the Draft when she fair-copied it; some substantial changes that Percy Shelley made to the Draft when he wrote out the last twelve-and-three-quarter pages of the Fair Copy;
+
+Furthermore, as Robinson notes (2008, p. 41), the following sections are missing from the 1816-1817 draft:
+
+>from Volume I, the four introductory letters from Walton to his sister Margaret and the first part of Chapter 1; and from Volume II almost half of Chapter 3 and all of Chapter 4.
+
+I have chosen not to replicate these sections from the 1818 version as we do not know who wrote them.
+
 ## To do (crucial items in __bold__):
+- ~~implement log file~~
+- ~~__composition of final text that resembles 1818 edition while maintaining insight in hand shifts: ch 18 of vol II to c57-0180 element 12 --> ch 7 of vol III from c58-0047 element 7__~~
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
   - record and update daily api calls in a file (so the script "remembers")
 - ~~ignore chapter headings, e.g. 56-0081~~
 - ~~__remove quotation marks that are within words due to EOL split, e.g. in 56-0068__~~
 - __How do we handle notes by the compositor, e.g. 58-0037__
-  - use milestone annotation as delspan
+  - ~~use milestone annotation as delspan~~
   - replace all comp annotations with mws annotations in post processing
 - add exception list for words that have a deviant spellings/unique words, e.g. *massercring* in 57-0039, *interspered* in 56-0122, *precipieces* in 56-0116, *dissapeared* in c56-0083
 - add 1818 edition lookup to regular join/separate algo?
@@ -115,7 +128,7 @@ The tertiary objective of this project relies on the outcome of the rolling clas
   - output:
     - ~~list that consists of consecutive fragments with the same hand~~
     - ~~list with same amount of elements and hand labels that correspond to fragments~~
-    - __.json format__
+    - ~~__.json format__~~
     - __ask how hand changes within a word should be handled__
       - allow them
       - or:
