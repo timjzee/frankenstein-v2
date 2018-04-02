@@ -201,7 +201,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += " " + processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-        print("#" + processed_text + "# - F")
+        print("#" + processed_text + "# - G")
     elif len(prevline_part) == 1 and re.fullmatch(r"[^Ia&0-9]", prevline_part):
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -210,7 +210,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - G")
+        print("#" + processed_text + "# - H")
     elif curline_part in ["I", "&"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += " " + processed_text
@@ -219,7 +219,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += " " + processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-        print("#" + processed_text + "# - H")
+        print("#" + processed_text + "# - I")
     elif curline_part in [".", ",", "?", ":", "!", ";"]:
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -228,7 +228,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - I")
+        print("#" + processed_text + "# - J")
     elif re.fullmatch(r"[qwrtpsdfghjklzxcvbnm]+", prevline_part):  # i.e. if prevline_part consists entirely of consonants it can't be complete yet
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -237,7 +237,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - J")
+        print("#" + processed_text + "# - K")
     elif len(curline_part) == len(processed_text) == len(previous_addition) == 1 and previous_addition not in [" ", "&", ".", ";", ".", "I"]:  # if the added text and the previously added text both consist of a single letter it is likely to be part of a within-word alteration
         if hand == hand_list[-1]:
             print_text_list[-1] += processed_text
@@ -246,7 +246,7 @@ def testWords(processed_text):
             hand_list.append(hand)
         print_text += processed_text
         print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-        print("#" + processed_text + "# - K")
+        print("#" + processed_text + "# - L")
     else:
         if print_text == "":
             l_context = None
@@ -276,7 +276,7 @@ def testWords(processed_text):
                 hand_list.append(hand)
             print_text += " " + processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-            print("#" + processed_text + "# - L")
+            print("#" + processed_text + "# - M")
         elif (prevline_part_score * curline_part_score) == (combined_score * combined_score) and combined_score == 0:  # fall back on old algorithm
             if ((prevline_part_score + curline_part_score) / 2) > combined_score:  # changed algorithm from mean to product of parts
                 if hand == hand_list[-1]:
@@ -286,7 +286,7 @@ def testWords(processed_text):
                     hand_list.append(hand)
                 print_text += " " + processed_text
                 print("prev: " + prevline_part + " cur: " + curline_part, "SEPARATED")  # Debug output
-                print("#" + processed_text + "# - M")
+                print("#" + processed_text + "# - N")
             else:
                 if hand == hand_list[-1]:
                     print_text_list[-1] += processed_text
@@ -295,7 +295,7 @@ def testWords(processed_text):
                     hand_list.append(hand)
                 print_text += processed_text
                 print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-                print("#" + processed_text + "# - N")
+                print("#" + processed_text + "# - O")
         else:  # if joined score >= separated score
             if hand == hand_list[-1]:
                 print_text_list[-1] += processed_text
@@ -304,7 +304,7 @@ def testWords(processed_text):
                 hand_list.append(hand)
             print_text += processed_text
             print("prev: " + prevline_part + " cur: " + curline_part, "JOINED")  # Debug output
-            print("#" + processed_text + "# - O")
+            print("#" + processed_text + "# - P")
     prev_add_processed = True
 
 
@@ -325,6 +325,8 @@ def processText(raw_text, mod_status):
     if process_text_calls == 1 and len(print_text) != 0 and new_text not in ["", " "]:
         if print_text[-1] == "-":
             prev_add_processed = False
+            if new_text[0] == "-":
+                new_text = new_text[1:]
             if hand == hand_list[-1]:
                 print_text_list[-1] = print_text_list[-1][:-1] + new_text
             else:
@@ -370,6 +372,16 @@ def processText(raw_text, mod_status):
                     hand_list.append(hand)
                 print_text += new_text
                 print("#" + new_text + "# - E")
+            elif new_text[0] == "-":
+                prev_add_processed = False
+                new_text = new_text[1:]
+                if hand == hand_list[-1]:
+                    print_text_list[-1] += new_text
+                else:
+                    print_text_list.append(new_text)
+                    hand_list.append(hand)
+                print_text += new_text
+                print("#" + new_text + "# - F")
             else:  # determine whether two parts are words
                 testWords(new_text)
     else:
@@ -383,7 +395,7 @@ def processText(raw_text, mod_status):
                         print_text_list.append(new_text[1:])
                         hand_list.append(hand)
                     print_text += new_text[1:]
-                    print("#" + new_text + "# - N")
+                    print("#" + new_text + "# - Q")
             else:
                 if print_text[-1] != " " and new_text[0] != " ":
                     testWords(new_text)
@@ -396,14 +408,14 @@ def processText(raw_text, mod_status):
                             print_text_list.append(new_text)
                             hand_list.append(hand)
                         print_text += new_text
-                        print("#" + new_text + "# - O")
+                        print("#" + new_text + "# - R")
         else:
             if print_text == "":  # i.e. if it is the first text to be added
                 prev_add_processed = False
                 print_text_list.append(new_text)
                 hand_list.append(hand)
                 print_text += new_text
-                print("#" + new_text + "# - P")
+                print("#" + new_text + "# - S")
     if new_text in ["", " "]:
         process_text_calls -= 1
     if new_text != "":
