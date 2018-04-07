@@ -96,3 +96,15 @@ macroPrecision = mean(precision)
 macroRecall = mean(recall)
 macroF1 = mean(f1)
 data.frame(macroPrecision, macroRecall, macroF1)
+
+## some descriptive analysis
+
+hand_df = data.frame(text_tokens, hand_tokens)
+pbs_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "pbs",]$text_tokens))
+pbs_freqs = pbs_freqs[order(-pbs_freqs$Freq),]
+pbs_freqs$relFreq = pbs_freqs$Freq / table(hand_tokens)["pbs"]
+mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_tokens))
+mws_freqs = mws_freqs[order(-mws_freqs$Freq),]
+mws_freqs$relFreq = mws_freqs$Freq / table(hand_tokens)["mws"]
+
+
