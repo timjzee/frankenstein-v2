@@ -8,11 +8,15 @@ setwd("/Users/tim/GitHub/frankenstein-v2/analysis")
 
 tokenized.test.corpus = load.corpus.and.parse(corpus.dir = "./test_set",
                                               encoding = "UTF-8",
-                                              splitting.rule = "[ ]+")
+                                              splitting.rule = "[!(;'?\n^).,>\":= \u2014\u2013]+")
 summary(tokenized.test.corpus)
+
+text_tokens = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list_processed.json")
+length(tokenized.test.corpus$S_text) == length(text_tokens)
 
 tokenized.training.corpus = load.corpus.and.parse(corpus.dir = "./reference_set",
                                                   encoding = "UTF-8")
+summary(tokenized.training.corpus)
 
 sample_size = 1500
 sample_overlap = 1400
@@ -27,7 +31,8 @@ sliced.training.corpus = make.samples(tokenized.training.corpus, sampling = "nor
 results = rolling.classify(test.corpus = sliced.test.corpus,
                            training.corpus = sliced.training.corpus,
                            write.png.file = TRUE, 
-                           classification.method = "svm", mfw = 100)
+                           classification.method = "svm", mfw = 100,
+                           slice.size = sample_size, slice.overlap = sample_overlap)
 
 svm_classification = as.vector(results$classification.results)
 

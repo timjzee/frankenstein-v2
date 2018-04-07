@@ -27,14 +27,15 @@ Furthermore, as Robinson notes (2008, p. 41), the following sections are missing
 I have chosen not to replicate these sections from the 1818 version as we do not know who wrote them.
 
 ## To do (crucial items in __bold__):
+- __why no revision in 57-0097 *he* + *f* + *inds*__
 - illustrate/plot sampling effect using actual results (proportion of pbs classifications at different sample sizes)
 - check whether macroF1 is better for smaller sample sizes (1500) than larger sample size (4000)
   - should be true if larger sample sizes result in classification that is identical to baseline (majority) classification, because performance is already better than baseline
   - note that macroF1 gives equal importance to performance in both classes, which does not flatter the performance of unbalanced datasets
 - add n-gram features
 - add POS features
-- __implement more intelligent splitting rule of in postProcessing.py and rollingStylo.R__
-- add issue to stylo GitHub for plotting wrong horizontal scale and sample size (first check whether I am on latest release)
+- ~~__implement more intelligent splitting rule of in postProcessing.py and rollingStylo.R__~~
+- *morning* is separated into *mor* and *ning* in c57-0101
 - ~~implement log file~~
 - ~~__composition of final text that resembles 1818 edition while maintaining insight in hand shifts: ch 18 of vol II to c57-0180 element 12 --> ch 7 of vol III from c58-0047 element 7__~~
 - implement a check on number of Datamuse API calls that pauses the script for 24 hours
