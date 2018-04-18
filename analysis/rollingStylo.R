@@ -58,6 +58,8 @@ p = rowsums / num_samples
 q = colsums / num_samples
 accuracy = sum(diag) / num_samples
 accuracy
+proportion_pbs = colsums["pbs"] / num_samples
+proportion_pbs
 
 precision = diag / colsums 
 recall = diag / rowsums 
