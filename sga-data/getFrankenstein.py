@@ -2,7 +2,7 @@ from lxml import etree
 import io
 import re
 import requests
-import sys
+# import sys
 import random
 import math
 import time
@@ -433,7 +433,7 @@ def getOtherShelley(shelley):
         return "mws"
 
 
-def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_tree, displ_end_id, cross_lin=False):
+def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_tree, displ_end_id, transpose_list, cross_lin=False):
     global delspan
     global delspan_id
     global hand
@@ -458,7 +458,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
             from_anchor = None
         for element_child in element_children:
             if type(element_child) == etree._Element:
-                from_anchor = processElement(zone_type, anchor_id, element_child, from_anchor, page_root, page_tree, displ_end_id)
+                from_anchor = processElement(zone_type, anchor_id, element_child, from_anchor, page_root, page_tree, displ_end_id, transpose_list)
                 if zone_end or delspan:  # step out of recursion if zone_end is encountered
                     return from_anchor
         if element.tag == "add" and element.get("hand"):
@@ -472,12 +472,12 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
             next_add_zone = page_tree.getelementpath(next_add).split("/")[0]
             if cur_add_zone == next_add_zone:  # modifications in another zone are already handled by anchor
                 ignore_adds.append(next_id[1:])
-                from_anchor = processElement(zone_type, anchor_id, next_add, from_anchor, page_root, page_tree, displ_end_id, True)
+                from_anchor = processElement(zone_type, anchor_id, next_add, from_anchor, page_root, page_tree, displ_end_id, transpose_list, True)
     elif element.tag == "metamark" and (element.get("id") in displ_ids):  # handle subzones
         process_text_calls = 0
         displ_id = element.get("id")
         if len(page_root.xpath("//addSpan[@corresp='#{}']".format(displ_id))) != 0:
-            processZone(zone_type, anchor_id, page_root, page_tree, displ_id, 0, 1000)
+            processZone(zone_type, anchor_id, page_root, page_tree, displ_id, 0, 1000, transpose_list)
             zone_end = False
     elif element.tag == "anchor":
         if element.get("id") == displ_end_id:  # handle end of subzone
@@ -513,6 +513,17 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
         delspan = True
         delspan_id = element.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of the deletion
         return from_anchor
+    elif element.tag == "milestone" and element.get("id") in [i.get("id") for i in transpose_list][1:]:
+        transpose_elem = transpose_list[0]  # id in first index is always the text that should be processed next
+        if transpose_elem.tag == "line":
+            processLine(zone_type, anchor_id, transpose_elem, None, page_root, page_tree, None, transpose_list)
+        else:  # i.e. transpose_elem is a milestone
+            processZone(zone_type, anchor_id, page_root, page_tree, transpose_elem.get("id"), 0, 1000, transpose_list)  # treats transposed text as a subzone
+            zone_end = False
+        transpose_list.append(transpose_list.pop(0))  # removes id from first index but keeps it in the list for future identification
+        delspan = True
+        delspan_id = element.get("spanTo")[1:]                                # Captures the ID of the anchor that marks the end of original transposed element
+        return from_anchor
     elif element.tag == "addSpan":
         if element.get("corresp"):
             if element.get("corresp")[1:] in displ_ids:
@@ -540,7 +551,7 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     return from_anchor
 
 
-def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page_tree, displ_end_id):
+def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page_tree, displ_end_id, transpose_list):
     global delspan
     global delspan_id
     global hand
@@ -550,22 +561,31 @@ def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page
     global process_text_calls
     global zone_end
     process_text_calls = 0
-    if line_element.text not in [None, "", "\n"] and from_anchor is None:
-        process_text_calls += 1
-        processText(line_element.text, False)           # Prints text at the start of a line
-    line_children = line_element.getchildren()
-    if (from_anchor is not None) and from_anchor in line_children:
-        line_children = line_children[line_children.index(from_anchor):]
-        from_anchor = None
-    for line_child in line_children:
-        if type(line_child) == etree._Element:
-            if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift", "milestone"]:
-                from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_end_id)
-            if zone_end or delspan:
-                return
+    if line_element.get("id") in [i.get("id") for i in transpose_list][1:]:  # if line id is first in the transpose_list it should get processed hence we only check the rest of the list
+        transpose_elem = transpose_list[0]  # id in first index is always the text that should be processed next
+        if transpose_elem.tag == "line":
+            processLine(zone_type, anchor_id, transpose_elem, None, page_root, page_tree, None, transpose_list)
+        else:  # i.e. transpose_elem is a milestone
+            processZone(zone_type, anchor_id, page_root, page_tree, transpose_elem.get("id"), 0, 1000, transpose_list)  # treats transposed text as a subzone
+            zone_end = False
+        transpose_list.append(transpose_list.pop(0))  # removes id from first index but keeps it in the list for future identification
+    else:
+        if line_element.text not in [None, "", "\n"] and from_anchor is None:
+            process_text_calls += 1
+            processText(line_element.text, False)           # Prints text at the start of a line
+        line_children = line_element.getchildren()
+        if (from_anchor is not None) and from_anchor in line_children:
+            line_children = line_children[line_children.index(from_anchor):]
+            from_anchor = None
+        for line_child in line_children:
+            if type(line_child) == etree._Element:
+                if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift", "milestone", "listTranspose"]:
+                    from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_end_id, transpose_list)
+                if zone_end or delspan:
+                    return
 
 
-def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, from_element, to_element):
+def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, from_element, to_element, transpose_list=[]):
     global delspan
     global delspan_id
     global hand
@@ -580,23 +600,36 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
     att_value = "main" if zone_att == "type" else anchor_id
     zone = page_root.xpath("//zone[@{}='{}']".format(zone_att, att_value))[0]
     ignore_adds = []
+    from_line_child = None
     if displacement_id:  # i.e. if zone is a subzone
-        subzone_start = zone.xpath("//addSpan[@corresp='#{}']".format(displacement_id))[0]
+        subzone_start = zone.find(".//addSpan[@corresp='#{}']".format(displacement_id))
+        if subzone_start is None:  # if subzone is defined by transposition milestone
+            subzone_start = zone.find(".//milestone[@id='{}']".format(displacement_id))
         end_id = subzone_start.get("spanTo")[1:]
         child = subzone_start
-        while child not in zone:
+        if child not in zone:
+            while child.getparent().tag != "line":
+                child = child.getparent()
+            from_line_child = child  # necessary to skip anything before the addspan or milestone occurs in the line
             child = child.getparent()
         from_element = zone.index(child)
     else:
         # from_element = 0  # remove this and add from_element and to_element as parameters
+        transpose_list = []
         end_id = None
         for elem in zone:  # changed from zone.iter() to zone to make indexing easier
+            # collect displacement ids
             if len(elem.findall(".//metamark[@function='displacement']")) != 0:
                 for displ_mark in elem.findall(".//metamark[@function='displacement']"):
                     if displ_mark.get("id"):
                         displ_ids.append(displ_mark.get("id"))
             if elem.tag == "metamark" and elem.get("funtion") == "displacement" and elem.get("id"):
                 displ_ids.append(elem.get("id"))
+            # collect transposition elements
+            if len(elem.findall(".//transpose")) != 0:
+                for trans_elem in elem.findall(".//transpose"):
+                    trans_id_list = [trans_child.get("target")[1:] for trans_child in trans_elem.getchildren()]
+                    transpose_list.extend([zone.find(".//*[@id='{}']".format(i)) for i in trans_id_list])
     zone_end = False
     for elem in zone:  # changed from zone.iter() to zone to make indexing easier
         if type(elem) == etree._Element:
@@ -616,10 +649,13 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
                             delspan = True
                             delspan_id = elem.get("spanTo")[1:]
                     elif elem.tag == "line":
-                        processLine(zone_type, anchor_id, elem, None, page_root, page_tree, end_id)
+                        if zone.index(elem) == from_element:  # we only want to start from a specific line child in the first line of a subzone/transposition
+                            processLine(zone_type, anchor_id, elem, from_line_child, page_root, page_tree, end_id, transpose_list)
+                        else:
+                            processLine(zone_type, anchor_id, elem, None, page_root, page_tree, end_id, transpose_list)
                     elif elem.tag == "metamark" and (elem.get("id") in displ_ids):
                         if len(zone.xpath("//addSpan[@corresp='#{}']".format(elem.get("id")))) != 0:
-                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), from_element, to_element)
+                            processZone(zone_type, anchor_id, page_root, page_tree, elem.get("id"), from_element, to_element, transpose_list)
                             zone_end = False
     #                    else:
     #                        anchr_id = "#" + elem.get("id")
@@ -695,7 +731,12 @@ def processZone(zone_type, anchor_id, page_root, page_tree, displacement_id, fro
                             hand_anchor_iter_index = [i for i in elem.iter()].index(hand_anchor)
                             if hand_anchor_iter_index < anchor_iter_index:
                                 hand = prev_hand[:]
-                        processLine(zone_type, anchor_id, elem, del_anchor, page_root, page_tree, end_id)
+                        processLine(zone_type, anchor_id, elem, del_anchor, page_root, page_tree, end_id, transpose_list)
+                        # Hack to process a delspan/transposition that is initiated and ended in the same line
+                        if delspan and len(elem.findall(".//anchor[@id='{}']".format(delspan_id))) != 0:
+                            del_anchor = elem.findall(".//anchor[@id='{}']".format(delspan_id))[0]
+                            delspan = False
+                            processLine(zone_type, anchor_id, elem, del_anchor, page_root, page_tree, end_id, transpose_list)
                     else:
                         if elem.tag == "anchor" and elem.get("id") == delspan_id:
                             delspan = False

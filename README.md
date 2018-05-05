@@ -27,6 +27,20 @@ Furthermore, as Robinson notes (2008, p. 41), the following sections are missing
 I have chosen not to replicate these sections from the 1818 version as we do not know who wrote them.
 
 ## To do (crucial items in __bold__):
+- implement transpositions e.g. c57-0157, c57-0179, c57-0074, c57-0043, c56-0108, c56-0038
+  - __needs more testing; check whether I didn't screw up subzone processing__
+  - ~~transposition list should be made when a zone is first processed~~
+  - ~~when an element or line is encountered with an xml:id in the transposition list~~
+    - ~~the contents of that element should not be processed~~
+    - ~~the contents of the element corresponding to the first id in the transposition list should be processed~~
+      - ~~if the element has a spanTo processing follows the subzone routine~~
+      - ~~else (element is a line) --> processLine~~
+    - ~~the first id in the transposition list should be moved~~
+    - ~~if the original element has a spanTo~~
+      - ~~delspan = True~~
+      - ~~delspan_id = spanTo id~~
+    - ~~else (original element is a line) --> nothing~~
+- __displacement not processed correctly in c56-0108 (see picture in article)__
 - __why no revision in 57-0097 *he* + *f* + *inds*__
 - illustrate/plot sampling effect using actual results (proportion of pbs classifications at different sample sizes)
 - check whether macroF1 is better for smaller sample sizes (1500) than larger sample size (4000)

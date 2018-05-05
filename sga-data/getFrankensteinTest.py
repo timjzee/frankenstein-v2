@@ -530,6 +530,8 @@ def processElement(zone_type, anchor_id, element, from_anchor, page_root, page_t
     elif element.tag == "handShift":
         hand = element.get("new")[1:]
     # print tail text
+    if element.tag == "listTranspose":
+        print("transposition in", page_id)
     if (("del" not in page_tree.getelementpath(element.getparent())) or re.search(r'restore.*del', page_tree.getelementpath(element.getparent()))) and "metamark" not in page_tree.getelementpath(element.getparent()):
         if element.tag == "add" and element.get("id") and len(page_root.xpath("//add[@next='{}']".format("#" + element.get("id")))) != 0:  # i.e. don't process tail if it is a cross-linear addition
             pass
@@ -563,6 +565,8 @@ def processLine(zone_type, anchor_id, line_element, from_anchor, page_root, page
         line_children = line_children[line_children.index(from_anchor):]
         from_anchor = None
     for line_child in line_children:
+        if line_child.tag == "listTranspose":
+            print("listTranspose in", page_id)
         if type(line_child) == etree._Element:
             if line_child.tag in ["mod", "hi", "add", "retrace", "damage", "unclear", "restore", "anchor", "metamark", "del", "delSpan", "addSpan", "handShift", "milestone"]:
                 from_anchor = processElement(zone_type, anchor_id, line_child, from_anchor, page_root, page_tree, displ_end_id)

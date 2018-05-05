@@ -11,11 +11,11 @@ A few years ago—when I still wanted to major in English literature—I decided
 
 Intrigued, I looked for an annotated edition of the novel that would provide additional details and context to the creation of Frankenstein. I quickly settled on this edition:
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/cover.jpg?raw=true "Book Cover")
 
 Interestingly, this edition contains two versions of the story: one version reprints the text of the first edition of the novel from 1818, and the other version was composed by the editor from handwritten drafts of *Frankenstein* that are held at the Oxford University library. However, the editor hadn't stopped there. He had marked Percy's contributions to this draft text in italics, using regular font for Mary's writing:
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/ch14.jpg?raw=true "Chapter 14")
 
 The editor, Charles E. Robinson, had based this annotation on a painstaking analysis of the different handwritings and types of ink that were used in the drafts.
 These annotations definitely contributed to my reading experience, but after finishing the novel I quickly forgot about them. Last year, however, I was suddenly reminded of them when I was scrambling to find a topic for a course project. The course, which was called "Text mining", was about the application of computer algorithms (or to use another buzzword "machine learning") to 'mine' interesting information from text sources. The course had briefly touched on authorship attribution: feeding linguistic features of a text into computer algorithms to determine its author. I wondered whether it would be possible to use this method to arrive at an annotation of *Frankenstein* that was similar to the hand annotation by Robinson.
@@ -31,4 +31,4 @@ The first problem I encountered, and the topic of this first article, concerns g
 | --- | --- | --- | --- |
 | __Array 2:__ | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
 
-Besides, it would probably be illegal to turn the e-book version into raw text and redistribute it online.
+It might be possible to convert the e-book into this format. However, often e-books are DRM-protected which would probably make this process rather frustrating. Besides, it would probably be illegal to turn the e-book version into raw text and redistribute it online. Luckily, we have an alternative source for Robinson's annotated version: The Shelley Godwin Archive.
