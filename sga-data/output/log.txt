@@ -1,113 +1,67 @@
-Script initiated at 1525558843.460287
-#When I found # - S
-#so# - R
-# astonishing# - R
-prev: astonishing cur: a SEPARATED
-#a# - M
-# power# - R
-prev: power cur: placed SEPARATED
-#placed # - M
-#within# - R
-# my hands# - R
-prev: hands cur: , JOINED
-#,# - J
-# I hesitated a long time# - R
-prev: time cur: concerning SEPARATED
-#concerning the # - M
-#manner in which# - R
-# I should # - R
-#employ# - R
-# it.# - R
-#Although I # - D
-# possessed# - Q
-prev: possessed cur: the SEPARATED
-#the capacity of bestowing animation yet# - M
-# to # - E
-#prepare# - R
-# a # - R
-#frame# - R
-prev: frame cur: for SEPARATED
-#for the # - M
-#reception of# - R
-prev: of cur: it SEPARATED
-#it# - M
-# with all its intri# - R
-prev: intri cur: cacies JOINED
-#cacies of fibres muscles & veins # - P
-#still remained# - B
-prev: remained cur: a SEPARATED
-#a work of inconceivable # - M
-#diffi# - B
-prev: diffi cur: culty JOINED
-#culty# - P
-# & # - E
-#labour# - B
-prev: labour cur: . JOINED
-#. I doubted at first whether I should# - J
-prev: should cur: attempt SEPARATED
-#attempt the creation of a # - M
-#being# - R
-prev: being cur: like SEPARATED
-#like # - M
-# myself or one of simpler# - Q
-prev: simpler cur: organization; SEPARATED
-#organization; # - M
-# but my imagination# - Q
-prev: imagination cur: was SEPARATED
-#was too much exalted by my first success# - M
-prev: success cur: to SEPARATED
-#to permit me to doubt of my # - M
-#ability to # - B
-#give life# - R
-prev: life cur: to SEPARATED
-#to# - M
-# an animal# - R
-# as complex# - R
-prev: complex cur: and SEPARATED
-#and wonderful as man. # - M
-#The materials# - B
-prev: materials cur: at SEPARATED
-#at present within # - M
-#my command# - R
-# hardly appeared adequate to so ardous# - R
-prev: ardous cur: an SEPARATED
-#an undertaking; # - N
-#but I doubted not that I should ul# - R
-prev: ul cur: -timately JOINED
-#-timately succeed.# - P
-#I prepared myself# - D
-prev: myself cur: for SEPARATED
-#for a multitude# - M
-prev: multitude cur: of SEPARATED
-#of reverses, my# - M
-prev: my cur: operations SEPARATED
-#operations # - M
-#be baffled # - B
-#incessantly, & at# - B
-prev: at cur: last SEPARATED
-#last my work be# - M
-prev: be cur: but SEPARATED
-#but imperfect,# - M
-#yet, when I con# - D
-prev: con cur: sidered JOINED
-#sidered# - P
+Script initiated at 1525559723.540693
+#Nothing is more painful # - S
+#than# - R
+prev: than cur: the SEPARATED
+#the dead calmness# - M
+prev: calmness cur: of SEPARATED
+#of inaction & certainty# - M
+prev: certainty cur: which SEPARATED
+#which# - M
+# when the# - R
+prev: the cur: mind SEPARATED
+#mind has been worked up by a # - M
+#quick# - R
+# succession of events, # - E
+# follow# - B
+prev: follow cur: s JOINED
+#s# - P
+prev: follows cur: and SEPARATED
+#and# - M
 combo 4
 algo 1
-#con# #sidered# #the#
-(6.304102997411113e+17, 'considered the improvement ', 'ab_c') REVISION
-#which# - R
-# every day# - R
-prev: day cur: takes SEPARATED
-#takes place in science and # - M
-#mechanics# - R
-prev: mechanics cur: I SEPARATED
-#I was encouraged to hope# - I
-# my # - E
-#present# - R
-# attempts would # - R
-#at least # - B
-#lay# - R
-# the foundations of future success# - R
+#follows# #and# #deprives#
+(3.3471518204465804e+16, 'follows and deprives the ', 'a_b_c') REVISION
+#soul# - R
+# both of hope or fear.# - R
+#Justine died— She rested. # - D
+#&# - R
+# I was alive# - R
+prev: alive cur: the SEPARATED
+#the blood flowed freely in my veins but# - M
+prev: but cur: a SEPARATED
+#a weight of despair & remorse pressed# - M
+prev: pressed cur: on SEPARATED
+#on my heart which nothing could remove–# - N
+prev: remove– cur: S JOINED
+#S# - P
+combo 2
+algo 1
+#remove–# #S# #leep#
+(1.803205691065801e+17, 'remove– Sleep fled', 'a_bc') REVISION
+prev: fled cur: from SEPARATED
+#from my eyes. I wandered like an# - M
+prev: an cur: evil SEPARATED
+#evil spirit for I # - M
+#had committed deeds of# - R
+# mischief beyond# - R
+prev: beyond cur: description SEPARATED
+#description # - M
+#horrible,# - R
+# and # - R
+# more much more (I# - Q
+prev: (I cur: persuaded SEPARATED
+#persuaded my self) was yet in store.# - M
+#Yet my heart overflowed with kind# - D
+prev: kind cur: ness JOINED
+#ness and # - P
+#goodness# - R
+# – I had begun life# - R
+prev: life cur: with SEPARATED
+#with benevolent intentions and thirsted for# - M
+prev: for cur: the SEPARATED
+#the moment when I # - M
+#could# - R
+# put them in practise# - R
 
-Number of Datamuse API calls: 84
-Script duration: 50.694090127944946
+Number of Datamuse API calls: 61
+Script duration: 25.671378135681152
