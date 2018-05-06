@@ -5,6 +5,8 @@ date:   2017-12-6 00:14:38 +0100
 categories: linguistics literature text-mining
 ---
 
+*NOTE: If your just looking for gold standard hand annotation files, scroll down to the bottom of this page.*
+
 # Introduction
 
 A few years ago—when I still wanted to major in English literature—I decided to read *Frankenstein*. Apart from being vaguely interested in the story, I was mainly drawn to it because of the weird 19th century Romantic drama surrounding its inception. Long story short, Percy, a 22 year old poet, meets Mary, the 17 year old daughter of a prominent intellectual; Percy deserts his pregnant wife to party with Mary in continental Europe, where Mary participates in a ghost story competition and writes *Frankenstein*; Back in England, Percy edits and publishes *Frankenstein* before drowning off the coast of Italy.
@@ -27,6 +29,8 @@ It is worth noting that these articles are intended 'for dummies' and are defini
 
 The first problem I encountered, and the topic of this first article, concerns getting a digital version of the hand annotated text by Robinson. This is more difficult than it may seem. Although an ebook version of this text exists, text mining techniques can't deal with the e-book formats (like .azw or .epub) used by Amazon or Google. In order to make Robinson's annotation readable by computers we would need to convert his text into programmable objects. One of the simplest ways to do this would be to create two lists (or *arrays* in programmer talk): one list that splits up the novel into stretches that are written by Mary and Percy respectively, and a second list with the author's names that correspond to those stretches of text. For example, the start of Chapter 14 (in the picture above) would be represented as follows:
 
+__Table 1__: This how I wanted the annotated version of Frankenstein to be structured.
+
 | Text Array | `nothing is more painful` | `than the dead calmness of inaction and certainty which,` | `when the mind ...` |
 | --- | --- | --- | --- |
 | __Hand Array__ | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
@@ -35,7 +39,7 @@ It might be possible to convert the e-book into this format. However, often e-bo
 
 ## The Shelley Godwin Archive
 
-The Shelley Godwin Archive (SGA) is a website that contains high quality scans and transcriptions of drafts written by different members of the Shelley and Godwin families. *Frankenstein* is one of the drafts presented on the website, and the description accompanying the draft states that:
+[The Shelley Godwin Archive](http://shelleygodwinarchive.org) (SGA) is a website that contains high quality scans and transcriptions of drafts written by different members of the Shelley and Godwin families. *Frankenstein* is one of the drafts presented on the website, and the description accompanying the draft states that:
 
 > [b]oth our transcriptions of the Frankenstein Notebooks and our attribution of authorial hand are based on Charles E. Robinson’s magisterial edition, The Frankenstein Notebooks
 
@@ -47,7 +51,26 @@ In this interface, the transcriptions on the right provide a digitalized version
 
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/sga_interface2.png?raw=true "SGA Interface")
 
+But I needed these files locally, and luckily the SGA developers allow anyone to access them on [their GitHub page](https://github.com/umd-mith/sga). I now had a digital version of *Frankenstein* with Robinson's hand annotation, but no idea how to interpret them and turn them into the structure illustrated in Table 1.
+
 ## Parsing XML files
+
+As a result of my (very limited) programming experience, I knew that the files I had downloaded were structured according to XML programming language and that this language made use hierarchical structures. But that was were my knowledge stopped. However, simply looking at an XML file can give you a good idea of what this all means. Let's take a look at a (slightly simplified version of) the xml code for the start of Chapter 14 (which corresponds to Chapter 13 in the draft):
+
+```xml
+<zone type="main">
+  <line>Chap. 13<hi>th </hi></line>
+  <line>Nothing is more painful
+    <mod>
+      <add hand="#pbs">than</add>
+      <anchor xml:id="c56-0108.02"/>
+    </mod> when the
+  </line>
+  <line>mind has been worked up by a <add>quick</add></line>
+</zone>
+```
+
+
 ### Hierarchical structure and recursive processing
 Code example of recursive function:
 - show that you need recursive function by first showing the problems that occur (with tail text specifically) when you 'flatten' hierarchical structure
