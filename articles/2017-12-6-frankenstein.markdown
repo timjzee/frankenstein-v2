@@ -70,6 +70,9 @@ As a result of my (very limited) programming experience, I knew that the files I
 </zone>
 ```
 
+The hierarchy in this structure can be visualized as follows:
+
+![Alt text](./xml_tree.svg)
 
 ### Hierarchical structure and recursive processing
 Code example of recursive function:
