@@ -31,10 +31,10 @@ The first problem I encountered, and the topic of this first article, concerns g
 
 __Table 1__: This how I wanted the annotated version of Frankenstein to be structured.
 
-| | 1 | 2 | 3 |
-| :---: | :---: | :---: | :---: |
+
 | Text Array | `nothing is more painful` | `than the dead calmness of inaction and certainty which,` | `when the mind ...` |
-| Hand Array | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
+| :---: | :---: | :---: | :---: |
+| __Hand Array__ | __`Mary Shelley`__ | __`Percy Shelley`__ | __`Mary Shelley`__ |
 
 It might be possible to convert the e-book into this format. However, often e-books are DRM-protected which would probably make this process rather frustrating. Besides, it would probably be illegal to turn the e-book version into raw text and redistribute it online. Luckily, we have an alternative source for Robinson's annotated version: The Shelley Godwin Archive.
 
