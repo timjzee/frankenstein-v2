@@ -21,14 +21,35 @@ The editor, Charles E. Robinson, had based this annotation on a painstaking anal
 These annotations definitely contributed to my reading experience, but after finishing the novel I quickly forgot about them. Last year, however, I was suddenly reminded of them when I was scrambling to find a topic for a course project. The course, which was called "Text mining", was about the application of computer algorithms (or to use another buzzword "machine learning") to 'mine' interesting information from text sources. The course had briefly touched on authorship attribution: feeding linguistic features of a text into computer algorithms to determine its author. I wondered whether it would be possible to use this method to arrive at an annotation of *Frankenstein* that was similar to the hand annotation by Robinson.
 
 During my course project, I encountered a number of problems and questions. In this three part series of articles I'll describe how I eventually solved these problems (by building on other people's work) and found some interesting results.
-It is worth noting that these articles are intended 'for dummies' and are definitely written by a dummy; I am by no means a computer programmer or literary scholar.
+It is worth noting that these articles are intended 'for dummies' and are definitely written by a dummy; I am by no means a computer programmer or literary scholar. However, these articles will be rather detailed. So buckle up for a long read or skip to the parts you find interesting.
 
 # Getting a gold standard text
 
 The first problem I encountered, and the topic of this first article, concerns getting a digital version of the hand annotated text by Robinson. This is more difficult than it may seem. Although an ebook version of this text exists, text mining techniques can't deal with the e-book formats (like .azw or .epub) used by Amazon or Google. In order to make Robinson's annotation readable by computers we would need to convert his text into programmable objects. One of the simplest ways to do this would be to create two lists (or *arrays* in programmer talk): one list that splits up the novel into stretches that are written by Mary and Percy respectively, and a second list with the author's names that correspond to those stretches of text. For example, the start of Chapter 14 (in the picture above) would be represented as follows:
 
-| Array 1: | `nothing is more painful` | `than the dead calmness of inaction and certainty which,` | `when the mind ...` |
+| Text Array | `nothing is more painful` | `than the dead calmness of inaction and certainty which,` | `when the mind ...` |
 | --- | --- | --- | --- |
-| __Array 2:__ | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
+| __Hand Array__ | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
 
 It might be possible to convert the e-book into this format. However, often e-books are DRM-protected which would probably make this process rather frustrating. Besides, it would probably be illegal to turn the e-book version into raw text and redistribute it online. Luckily, we have an alternative source for Robinson's annotated version: The Shelley Godwin Archive.
+
+## The Shelley Godwin Archive
+
+The Shelley Godwin Archive (SGA) is a website that contains high quality scans and transcriptions of drafts written by different members of the Shelley and Godwin families. *Frankenstein* is one of the drafts presented on the website, and the description accompanying the draft states that:
+
+> [b]oth our transcriptions of the Frankenstein Notebooks and our attribution of authorial hand are based on Charles E. Robinson’s magisterial edition, The Frankenstein Notebooks
+
+The screenshot below illustrates how these transcriptions are presented:
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/sga_interface.jpg?raw=true "SGA Interface")
+
+## Parsing XML files
+### Hierarchical structure and recursive processing
+Code example of recursive function:
+- show that you need recursive function by first showing the problems that occur (with tail text specifically) when you 'flatten' hierarchical structure
+### Encoding Guidelines
+Looking back at this project/In hindsight, I was really lucky to have these encoding guidelines, especially considering my limited experience with xml. They essentially gave me a systematic and detailed overview of the problems that needed to be solved, allowing me to jump right into someone else's project.
+### Text processing
+discuss need for and use of heuristic rules and datamuse
+show side-by-side comparison of my reading text and SGA reading text
+### Composition of pages

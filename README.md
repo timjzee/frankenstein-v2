@@ -40,7 +40,7 @@ I have chosen not to replicate these sections from the 1818 version as we do not
       - ~~delspan = True~~
       - ~~delspan_id = spanTo id~~
     - ~~else (original element is a line) --> nothing~~
-- __displacement not processed correctly in c56-0108 (see picture in article)__
+- ~~displacement not processed correctly in c56-0108 (see picture in article)~~
 - __why no revision in 57-0097 *he* + *f* + *inds*__
 - illustrate/plot sampling effect using actual results (proportion of pbs classifications at different sample sizes)
 - check whether macroF1 is better for smaller sample sizes (1500) than larger sample size (4000)
