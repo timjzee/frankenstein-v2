@@ -41,7 +41,11 @@ The Shelley Godwin Archive (SGA) is a website that contains high quality scans a
 
 The screenshot below illustrates how these transcriptions are presented:
 
-![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/sga_interface.jpg?raw=true "SGA Interface")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/sga_interface.png?raw=true "SGA Interface")
+
+In this interface, the transcriptions on the right provide a digitalized version of the draft page on the left, including the changes (in italics) made by Percy when he edited the draft. However, we can't really use these annotations as is. First of all, they're on a website, and second, although the changes by Percy are represented, it is not clear where they should be inserted. In other words, we need the source code of the transcriptions. The SGA actually allows you to see the code in which the transcriptions were made:
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/sga_interface2.png?raw=true "SGA Interface")
 
 ## Parsing XML files
 ### Hierarchical structure and recursive processing
