@@ -31,7 +31,7 @@ The first problem I encountered, and the topic of this first article, concerns g
 
 __Table 1__: This how I wanted the annotated version of Frankenstein to be structured.
 
-| Array Name |
+| | 1 | 2 | 3 |
 | :---: | :---: | :---: | :---: |
 | Text Array | `nothing is more painful` | `than the dead calmness of inaction and certainty which,` | `when the mind ...` |
 | Hand Array | `Mary Shelley` | `Percy Shelley` | `Mary Shelley` |
