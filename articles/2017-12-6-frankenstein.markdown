@@ -103,7 +103,7 @@ Running the code above gives us:
 ```
 Chap. 13th Nothing is more painful when the than mind has been worked up by a quick
 ```
-As we can see the word `than` is in the wrong place. This is because we need process the children of the '<mod></mod>' element before we process the tail text of '<mod></mod>'. In fact, this is a general principle that applies to every element. How do we generalize this process so that we can apply it to every Frankenstein xml file  without knowing how many elements it consists of and which elements contain children? We need to make a recursive function:
+As we can see the word `than` is in the wrong place. This is because we need process the children of the `<mod></mod>` element before we process the tail text of `<mod></mod>`. In fact, this is a general principle that applies to every element. How do we generalize this process so that we can apply it to every Frankenstein xml file  without knowing how many elements it consists of and which elements contain children? We need to make a recursive function:
 
 ```python
 def processElement(element):
