@@ -60,20 +60,70 @@ As a result of my (very limited) programming experience, I knew that the files I
 
 ```xml
 <zone type="main">
-  <line>Chap. 13<hi>th </hi></line>
+  <line>Chap. 13
+    <hi>th </hi>
+  </line>
   <line>Nothing is more painful
     <mod>
-      <add hand="#pbs">than</add>
+      <add hand="#pbs"> than</add>
       <anchor xml:id="c56-0108.02"/>
     </mod> when the
   </line>
-  <line>mind has been worked up by a <add>quick</add></line>
+  <line>mind has been worked up by a
+    <add>quick</add>
+  </line>
 </zone>
 ```
 
 The hierarchy in this structure can be visualized as follows:
 
 ![Alt text](./xml_tree.svg)
+
+My first priority was to extract the text contained in these tags in the right order. As you can see there are 2 types of text that can be associated with a tag: text and tail text. Text occurs directly after a tag has been opened, and tail text occurs directly after a tag has been closed. This is important because, as I found out, it necessitates a certain approach. My first instinct was to flatten the hierarchical structure and simply extract the text linearly, see the Python code below:
+
+```python
+from lxml import etree  # lxml is a library that allows Python to handle .xml files
+
+# assigning our example .xml code to a Python lxml object
+zone = etree.fromstring('<zone type="main"><line>Chap. 13<hi>th </hi></line><line>Nothing is more painful<mod><add hand="#pbs"> than</add><anchor xml:id="c56-0108.02"/></mod> when the </line><line>mind has been worked up by a <add>quick</add></line></zone>')
+
+# by flattening zone we create a simple list of all the tags in zone
+flat_zone = [i for i in zone.iter()]
+
+# now we simply loop through each element and extract all text, right?
+reading_text = ""
+for element in flat_zone:
+    reading_text += element.text if element.text else ""  # extract text
+    reading_text += element.tail if element.tail else ""  # extract tail text
+
+print(reading_text)
+```
+
+Running the code above gives us:
+```
+Chap. 13th Nothing is more painful when the than mind has been worked up by a quick
+```
+As we can see the word `than` is in the wrong place. This is because we need process the children of the '<mod></mod>' element before we process the tail text of '<mod></mod>'. In fact, this is a general principle that applies to every element. How do we generalize this process so that we can apply it to every Frankenstein xml file  without knowing how many elements it consists of and which elements contain children? We need to make a recursive function:
+
+```python
+def processElement(element):
+    reading_text = ""
+    # extract any text in element
+    reading_text += element.text if element.text else ""
+    # process children of element
+    for child in element:
+        reading_text += processElement(child)
+    # extract any tail text of element
+    reading_text += element.tail if element.tail else ""
+    return reading_text
+
+print(processElement(zone))
+```
+Running the code above gives us:
+```
+Chap. 13th Nothing is more painful than when the mind has been worked up by a quick
+```
+Success! `than` is now in the right place! However, you will have noticed that a large part of Percy's addition is missing from this text. This is because this addition is on another part of the page contained in it's own `<zone></zone>` element. That zone element is referenced by the `<anchor/>` element in the main zone. Furthermore, we have not been keeping track of any hand changes.
 
 ### Hierarchical structure and recursive processing
 Code example of recursive function:
