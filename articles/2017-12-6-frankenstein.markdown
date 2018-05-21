@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hacking Frankenstein (Part 1): A gold standard"
-date:   2017-12-6 00:14:38 +0100
+date:   2018-5-21 01:15:00 +0100
 categories: linguistics literature text-mining
 ---
 
@@ -239,7 +239,7 @@ I have chosen not to replicate these sections from the 1818 version as we do not
 - [Text]()
 - [Hand annotation]()
 
-Excerpt:
+Sample:
 ```python
 # Text
 ["Nothing is more painful ", "than the dead calmness of inaction & certainty which", " when the mind has been worked up by a quick succession of events,  follow", "s and"]
@@ -255,7 +255,7 @@ Excerpt:
 - [Text]()
 - [Hand annotation]()
 
-Excerpt:
+Sample:
 ```python
 # Text
 ["nothing", "is", "more", "painful", "than", "the", "dead", "calmness", "of", "inaction", "&", "certainty", "which",  "when", "the", "mind", "has", "been", "worked", "up", "by", "a", "quick", "succession", "of", "events", "follows", "and"]
