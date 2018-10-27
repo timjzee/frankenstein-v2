@@ -4,22 +4,29 @@ library(zoo)
 
 setwd("/Users/tim/GitHub/frankenstein-v2/analysis")
 
+# tokenized.test.corpus = load.corpus.and.parse(corpus.dir = "./test_set",
+#                                              encoding = "UTF-8",
+#                                              splitting.rule = "[!(;'?\n^).,>\":= \u2014\u2013]+")
+#summary(tokenized.test.corpus)
 # write(toJSON(tokenized.test.corpus$S_text.txt), "frankenstein_tokenized_r.json")
 
-tokenized.test.corpus = load.corpus.and.parse(corpus.dir = "./test_set",
-                                              encoding = "UTF-8",
-                                              splitting.rule = "[!(;'?\n^).,>\":= \u2014\u2013]+")
-summary(tokenized.test.corpus)
-
-text_tokens = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list_processed.json")
+text_tokens = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list_processed_ands.json")
+tokenized.test.corpus = list(text_tokens)
+names(tokenized.test.corpus) = c("S_text")
 length(tokenized.test.corpus$S_text) == length(text_tokens)
 
-tokenized.training.corpus = load.corpus.and.parse(corpus.dir = "./reference_set",
-                                                  encoding = "UTF-8")
+# tokenized.training.corpus = load.corpus.and.parse(corpus.dir = "./reference_set",
+#                                                  encoding = "UTF-8")
+thelastman = fromJSON(file = "./tokenized_texts/mws_the-last-man.json")
+stirvyne = fromJSON(file = "./tokenized_texts/pbs_st-irvyne.json")
+zastrozzi = fromJSON(file = "./tokenized_texts/pbs_zastrozzi.json")
+tokenized.training.corpus = list(thelastman, stirvyne, zastrozzi)
+names(tokenized.training.corpus) = c("mws_the-last-man", "pbs_st-irvyne", "pbs_zastrozzi")
+
 summary(tokenized.training.corpus)
 
-sample_size = 1500
-sample_overlap = 1400
+sample_size = 1600
+sample_overlap = 1500
 resolution = sample_size - sample_overlap
 
 sliced.test.corpus = make.samples(tokenized.test.corpus, sampling = "normal.sampling",
@@ -28,10 +35,13 @@ sliced.test.corpus = make.samples(tokenized.test.corpus, sampling = "normal.samp
 sliced.training.corpus = make.samples(tokenized.training.corpus, sampling = "normal.sampling",
                                       sample.size = sample_size, sample.overlap = 0)
 
+function_words = fromJSON(file = "./f_words2.json")
+
 results = rolling.classify(test.corpus = sliced.test.corpus,
                            training.corpus = sliced.training.corpus,
-                           write.png.file = TRUE, 
-                           classification.method = "svm", mfw = 100,
+                           write.png.file = FALSE, 
+                           classification.method = "svm", features = function_words,
+                           milestone.points = c(60214), milestone.labels = c("Fair Copy"),
                            slice.size = sample_size, slice.overlap = sample_overlap)
 
 svm_classification = as.vector(results$classification.results)
@@ -43,6 +53,27 @@ culled_hand_tokens = hand_tokens[1:num_words]
 hand_matrix = rollapply(culled_hand_tokens, sample_size, by = resolution, c)
 hand_groups = split(hand_matrix, row(hand_matrix))
 hand_majorities = sapply(hand_groups, function(x) names(which.max(table(x))))
+pbs_proportions = sapply(hand_groups, function(x) sum(x == "pbs") / sample_size)
+
+norm_score = 0.5 + results$classification.scores[, 1] / (2 * max(results$classification.scores))
+scorenames = results$classification.rankings[, 1]
+norm_scores = data.frame(norm_score, scorenames, pbs_proportions)
+norm_scores$majority_proportions = 1:nrow(norm_scores)
+norm_scores[norm_scores$pbs_proportions > 0.5,]$majority_proportions = norm_scores[norm_scores$pbs_proportions > 0.5,]$pbs_proportions
+norm_scores[norm_scores$pbs_proportions < 0.5,]$majority_proportions = 1 - norm_scores[norm_scores$pbs_proportions < 0.5,]$pbs_proportions
+
+norm_scores$pbs_scores = 1:nrow(norm_scores)
+norm_scores[norm_scores$scorenames == "pbs",]$pbs_scores = norm_scores[norm_scores$scorenames == "pbs",]$norm_score
+norm_scores[norm_scores$scorenames == "mws",]$pbs_scores = 1 - norm_scores[norm_scores$scorenames == "mws",]$norm_score
+norm_scores$mws_scores = 1 - norm_scores$pbs_scores
+# Correlation between Normalized PBS scores & Proportion of PBS hand
+cor(norm_scores$pbs_scores, pbs_proportions)
+plot(norm_scores$pbs_scores, col = "grey", ylim = c(0,1))
+lines(x = c(0, length(norm_scores$pbs_proportions)), y = c(0.5, 0.5), col = "red", lty = 2)
+lines(norm_scores$pbs_proportions, col = "black")
+# Correlation between Majority scores & Majority Proportion
+cor(norm_scores$norm_score, norm_scores$majority_proportions)
+
 
 summary(svm_classification)
 summary(hand_majorities)
