@@ -11,4 +11,26 @@ In my [previous post](http://www.timzee.nl/linguistics/literature/text-mining/20
 
 # Descriptive statistics of Percy's contribution
 
+
+Using the statistics programming language *R* we can nicely visualize Percy's contributions throughout *Frankenstein*:
+
+```python
+library(rjson)
+library(zoo)
+
+hand_tokens = fromJSON(file = "./hand_list_processed.json")
+sample_size = 100
+num_samples = length(hand_tokens) %/% sample_size
+num_tokens = num_samples * sample_size
+culled_hand_tokens = hand_tokens[1:num_tokens]
+hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_size, c)
+hand_groups = split(hand_matrix, row(hand_matrix))
+pbs_proportions = sapply(hand_groups, function(x) sum(x == "pbs"))
+plot(pbs_proportions, ylim = c(0,100), type = 'l',
+     main = "Percy's contribution throughout Frankenstein",
+     xlab = "Sample index (Sample size = 100 words)",
+     ylab = "% of words in Percy's hand")
+
+```
+
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/PBS_percentage.png?raw=true "Percentage of Percy's hand")
