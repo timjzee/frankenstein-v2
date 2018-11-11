@@ -25,8 +25,8 @@ names(tokenized.training.corpus) = c("mws_the-last-man", "pbs_st-irvyne", "pbs_z
 
 summary(tokenized.training.corpus)
 
-sample_size = 1600
-sample_overlap = 1500
+sample_size = 800
+sample_overlap = 700
 resolution = sample_size - sample_overlap
 
 sliced.test.corpus = make.samples(tokenized.test.corpus, sampling = "normal.sampling",
@@ -35,7 +35,7 @@ sliced.test.corpus = make.samples(tokenized.test.corpus, sampling = "normal.samp
 sliced.training.corpus = make.samples(tokenized.training.corpus, sampling = "normal.sampling",
                                       sample.size = sample_size, sample.overlap = 0)
 
-function_words = fromJSON(file = "./f_words2.json")
+function_words = fromJSON(file = "./f_words_shelleys.json")
 
 results = rolling.classify(test.corpus = sliced.test.corpus,
                            training.corpus = sliced.training.corpus,

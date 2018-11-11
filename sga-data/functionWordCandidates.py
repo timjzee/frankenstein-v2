@@ -30,6 +30,16 @@ with open("./output/text_list_processed_ands.json") as f:
 frankenstein_d = countWords(frankenstein_list)
 print(len(frankenstein_d))
 
+with open("/Users/tim/GitHub/frankenstein-v2/analysis/pca_texts/LAMB_glenarvon.txt") as f:
+    glenarvon = f.read()
+
+glenarvon_list = tokenize(glenarvon)
+with open("/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/lam_glenarvon.json", "w") as f:
+    f.write(json.dumps(glenarvon_list))
+
+glenarvon_d = countWords(glenarvon_list)
+print(len(glenarvon_d))
+
 with open("/Users/tim/GitHub/frankenstein-v2/analysis/reference_set/mws_the-last-man.txt") as f:
     thelastman = f.read()
 
@@ -63,6 +73,8 @@ print(len(zastrozzi_d))
 for word in word_dictionary:
     if word in frankenstein_d:
         word_dictionary[word] += frankenstein_d[word] / len(frankenstein_list)
+    if word in glenarvon_d:
+        word_dictionary[word] += glenarvon_d[word] / len(glenarvon_list)
     if word in thelastman_d:
         word_dictionary[word] += thelastman_d[word] / len(thelastman_list)
     if word in stirvyne_d:
