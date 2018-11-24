@@ -127,4 +127,4 @@ ggbiplot(samples_pca, labels = rownames(samples), groups = hand_majorities, var.
 
 ```
 
-![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca_frankenstein.png?raw=true "PCA of Frankenstein")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca_frankenstein_arrow.png?raw=true "PCA of Frankenstein")
