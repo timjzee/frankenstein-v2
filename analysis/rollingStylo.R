@@ -140,4 +140,4 @@ mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_toke
 mws_freqs = mws_freqs[order(-mws_freqs$Freq),]
 mws_freqs$relFreq = mws_freqs$Freq / table(hand_tokens)["mws"]
 
-
+# subtract relFreq in pbs_freqs from relFreq in mws_freqs, and then sort by largest difference
