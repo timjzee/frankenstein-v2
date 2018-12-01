@@ -30,7 +30,8 @@ The code above stores the amount of words that were authored by Percy in `num_pb
 > prop_pbs_words
 [1] 0.1149133
 ```
-This shows that more than 11% of the 62421 words in the Frankenstein draft were penned by Percy. Surprisingly, this is a bit more than the 4000-5000 words estimated by Charles E. Robinson (2008, p. 25), who created the annotated edition on which our own annotations are based. One explanation for this discrepancy is that, although the final pages of Chapter 18 were (re)written in Percy's hand, much of the text might have been based on an earlier draft by Mary.
+This shows that more than 11% of the 62421 words in the Frankenstein draft were penned by Percy. Surprisingly, this is a bit more than the 4000-5000 words estimated by Charles E. Robinson (2008, p. 25), who created the annotated edition on which our own annotations are based.
+Our estimate might have been more in line with Robinson's if we had taken into account that, although the final pages of Chapter 18 were (re)written in Percy's hand, much of the text could have been based on an earlier draft by Mary.
 
 As a next step we could take a look at how Percy's contributions are distributed throughout the draft:
 
@@ -51,11 +52,12 @@ plot(pbs_proportions, ylim = c(0,100), type = 'l',
 ```
 
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/PBS_percentage.png?raw=true "Percentage of Percy's hand")
+*Figure 1*
 
-This plot shows that Percy contributed both shorter additions (represented by the smaller spikes) and longer (> 100 words) stretches of text.
-
+This plot shows that Percy contributed both shorter additions (represented by the smaller spikes) and longer (> 100 words) stretches of text (around index 100, 150 and 600 for example).
 
 Now let's take a look at what Percy's contribution mostly consists of.
+
 ```python
 mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_tokens))
 mws_freqs = mws_freqs[order(-mws_freqs$Freq),]
@@ -84,35 +86,51 @@ Note that this way of calculating frequency differences favours authorial differ
 
 We're starting to get a better picture of Percy's additions, but if we want to dig deeper, we will need more sophisticated statistical methods.
 
-# Principle Component Analysis
+# Principle Component Analysis 1
+One aspect of PCA that makes it more sophisticated is that it allows us to look at what separates Percy's additions from Mary's writing in granular detail. In other words, can we find distinctive features in those longer stretches of text that were penned by Percy?
+
+We'll use a slightly larger sample size this time. As we'll see PCA works better the larger the samples it uses.
 
 ```python
 sample_size = 400
-sample_shift = 100
-sample_overlap = sample_size - sample_shift
-
-num_samples = (length(text_tokens) - sample_overlap) %/% sample_shift
-num_words = (num_samples - 1) * sample_shift + sample_size
+num_samples = length(text_tokens) %/% sample_size
+num_words = (num_samples - 1) * sample_size
 culled_word_tokens = text_tokens[1:num_words]
-word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_shift, c)
+word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_size, c)
 word_groups = split(word_matrix, row(word_matrix))
+```
 
+Now we've split up the tokenized text into samples of 400 words, we need to assign the author labels according to the majority hand of each sample.
+
+```python
 culled_hand_tokens = hand_tokens[1:num_words]
-hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_shift, c)
+hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_size, c)
 hand_groups = split(hand_matrix, row(hand_matrix))
 hand_majorities = sapply(hand_groups, function(x) names(which.max(table(x))))
-# explain that labels are made to correspond to indices in previous plot
+```
+
+We'll give each sample a name that includes an index number that corresponds to the indices in Figure 1.
+
+```python
 sample_labels = paste(hand_majorities, as.character(4*1:num_samples-3), sep = "_")
-
 names(word_groups) = sample_labels
+```
 
-library(stylo)
-library(ggbiplot)
+Now we've prepared our text it is time to create the feature set that will be used by PCA. For this analysis we'll only use frequent words as our features. However, we shouldn't just use any frequent words. For example, certain characters' names will be much more frequent in one part of the book compared to another part. But such a difference would not really indicate any distinction in writing style between Mary and Percy. As such, we'll only look at the frequency of so-called *function words*. These words, which include articles (e.g. *the*, *a*), pronouns (e.g. *which*, *you*), etcetera, usually perform a grammatical function rather than represent a specific meaning. As a result they are not as sensitive to the specific topic at hand.
 
-# describe why we need function words
+First, I sorted the words in Frankenstein by frequency, while accounting for the proportion of each author's contribution.
+
+```python
 all_freqs$mfw = (all_freqs$PBSrelFreq + all_freqs$MWSrelFreq) / 2
 all_freqs = all_freqs[order(-all_freqs$mfw),]
-mfw = head(all_freqs$word, 200)
+```
+
+Subsequently, I went through the sorted words by hand and picked out the function words until I had a list of the 200 most frequent function words.
+
+Next, we'll load this list into *R* and use it to transform our samples into feature vectors of which the values represent the frequencies of the function words in that sample.
+
+```python
+library(stylo)
 
 function_words = fromJSON(file = "./f_words_frankenstein.json")
 freqs = make.table.of.frequencies(word_groups, features = function_words)
@@ -121,10 +139,39 @@ rnames = rownames(freqs)
 cnames = colnames(freqs)
 rownames(samples) = rnames
 colnames(samples) = cnames
-
-samples_pca = prcomp(samples, center = TRUE, scale. = TRUE)
-ggbiplot(samples_pca, labels = rownames(samples), groups = hand_majorities, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE, varname.size = 2)
-
 ```
 
+Now we are finally ready to do our first PCA. PCA basically looks at each sample as a point in a multidimensional space. In our case, every dimension of that space represents the frequency of one of the 200 function words. The PCA then tries to find new dimensions (based on the existing ones) that best explain the differences between the predetermined classes--samples labelled Mary versus those labelled Percy.
+
+```python
+library(ggbiplot)
+
+samples_pca = prcomp(samples, center = TRUE, scale. = TRUE)
+ggbiplot(samples_pca, labels = rownames(samples),
+         groups = hand_majorities, var.axes = TRUE, var.scale = 0.2,
+         varname.adjust = 8, ellipse = TRUE, varname.size = 2)
+```
+
+The resulting figure plots the samples according to the two dimensions (*principle components*) that best explain the variance. It also shows how the original features (the function words) relate to these two dimensions.
+
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca_frankenstein_arrow.png?raw=true "PCA of Frankenstein")
+
+One thing that stands out is how spread out the different samples that were penned by Percy are. In general, Percy's earlier contributions around index 100 and 150 form a separate cluster from Percy's later contributions around index 600. This could be explained by the fact that the later samples are from the Fair Copy whereas the earlier samples are from an earlier draft. In other words the earlier samples may represent original contributions by Percy whereas the later sample represent text that was edited by Percy but originally authored by Mary.
+
+Additionally, we can take a look at how our previously established difference between Mary and Percy's writing, the frequency of the word *which*, relates to the first two principle components. If we look at the position of *which* in the plot (see arrow), we can conclude that it is rather strongly related to PC1. Interestingly, however, all of Percy's samples are located at the opposite end of the plot, which shows that they contain fewer counts of *which* than most of Mary's samples. This is the complete opposite of what we would've expected from the overall distribution of *which*. This can only mean that much of Percy's usage of *which* consist of additions or changes in stretches of text that were predominantly penned by Mary.
+
+The final thing to note about this plot is that it shows that the PCA wasn't very successful in separating the samples according to majority hand. This is likely due to the rather small sample size of 400 words.
+
+# Principle Component Analysis 2
+
+Unfortunately, we can't simply increase the sample size to get a more successful separation of Percy's contributions to Frankenstein. As most of Percy's longer contributions are only a couple of hundred words long, larger samples would always include a considerable amount of text by Mary.
+
+One way around this problem would be to look at other texts written by Mary and Percy respectively. However, we can't just use any texts. We need to be sure that the Shelley's did not collaborate on these texts or edited each other's writing. Percy's premature death rather simplifies finding material authored solely by Mary. Her first work after the death of husband was the historical novel *Valperga*, but this work was heavily edited by Mary’s father William Godwin (Rossington, 2000, p. 103). Instead, her next work, the science fiction novel *The Last Man*, was selected as a suitable text for PCA.
+
+Finding suitable material written by Percy is a bit more difficult. Unfortunately, most of Percy’s later work consists of poetry, which is too different from prose fiction in its structure and diction to be of much use as a training text. However, Percy did publish two novellas, *Zastrozzi* and *St Irvyne*, during his time at Eton College and Oxford University in 1810 (O’Neill, 2004). Crucially, he did not start his relationship with William Godwin, which led to his acquaintance with Mary, until January of 1812 (O’Neill, 2004). It can be concluded then that Mary had no influence whatsoever on these novellas.
+
+# References
+
+- O'Neill, M. (2004). Shelley, Percy Bysshe (1792–1822). In B. Harrison (Ed.), *Oxford Dictionary of National Biography*. Retrieved from Oxford University Press. doi:10.1093/ref:odnb/25312.
+- Robinson, C.E. (2008). *The Original Frankenstein*. New York: Vintage Books.
+- Rossington, M. (2000). Future uncertain: The republican tradition and its destiny in Valperga. In B.T. Bennett & S. Curran (Eds.), *Mary Shelley in Her Times* (103-118). Baltimore: Johns Hopkins University Press.
