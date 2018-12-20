@@ -94,7 +94,7 @@ We'll use a slightly larger sample size this time. As we'll see, PCA works bette
 ```python
 sample_size = 400
 num_samples = length(text_tokens) %/% sample_size
-num_words = (num_samples - 1) * sample_size
+num_words = num_samples * sample_size
 culled_word_tokens = text_tokens[1:num_words]
 word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_size, c)
 word_groups = split(word_matrix, row(word_matrix))
