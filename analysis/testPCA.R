@@ -17,8 +17,8 @@ tokenized.corpus = list(glenarvon, thelastman, stirvyne, zastrozzi, frankenstein
 names(tokenized.corpus) = c("lam_glenarvon", "mws_the-last-man", "pbs_st-irvyne", "pbs_zastrozzi", "???_frankenstein")
 
 summary(tokenized.corpus)
-sample_size = 800
-sample_shift = 100
+sample_size = 4000
+sample_shift = 4000
 sample_overlap = sample_size - sample_shift
 
 sliced.corpus <- make.samples(tokenized.corpus, sampling = "normal.sampling",

@@ -7,7 +7,7 @@ categories: linguistics literature text-mining
 
 # Introduction
 
-In my [previous post](http://www.timzee.nl/linguistics/literature/text-mining/2018/05/21/frankenstein1.html), I described how I created hand annotation files for a draft version of Frankenstein. As I explained in that post, I needed those annotations as a baseline for an authorship attribution analysis of Frankenstein: Would such a machine learning approach come to similar conclusions as a painstaking handwriting analysis in terms of Percy Shelley's contribution to his wife's famous novel? This article will make a first attempt at answering that question. But first let's take a closer look at our hand annotation files and see how much and what Percy actually contributed.
+In my [previous post](http://www.timzee.nl/linguistics/literature/text-mining/2018/05/21/frankenstein1.html), I described how I created hand annotation files for a draft version of Frankenstein. As I explained in that post, I needed those annotations as a baseline for an authorship attribution analysis of Frankenstein; Would such a machine learning approach come to similar conclusions as a painstaking handwriting analysis in terms of Percy Shelley's contribution to his wife's famous novel? This article will make a first attempt at answering that question. But first let's take a closer look at our hand annotation files and see how much and what Percy actually contributed.
 
 # Descriptive statistics of Percy's contribution
 
@@ -31,7 +31,7 @@ The code above stores the amount of words that were authored by Percy in `num_pb
 [1] 0.1149133
 ```
 This shows that more than 11% of the 62421 words in the Frankenstein draft were penned by Percy. Surprisingly, this is a bit more than the 4000-5000 words estimated by Charles E. Robinson (2008, p. 25), who created the annotated edition on which our own annotations are based.
-Our estimate might have been more in line with Robinson's if we had taken into account that, although the final pages of Chapter 18 were (re)written in Percy's hand, much of the text could have been based on an earlier draft by Mary.
+Our estimate might have been more in line with Robinson's if we had taken into account that although the final pages of Chapter 18 were (re)written in Percy's hand, much of the text could have been based on an earlier draft by Mary.
 
 As a next step we could take a look at how Percy's contributions are distributed throughout the draft:
 
@@ -89,7 +89,7 @@ We're starting to get a better picture of Percy's additions, but if we want to d
 # Principle Component Analysis 1
 One aspect of PCA that makes it more sophisticated is that it allows us to look at what separates Percy's additions from Mary's writing in granular detail. In other words, can we find distinctive features in those longer stretches of text that were penned by Percy?
 
-We'll use a slightly larger sample size this time. As we'll see PCA works better the larger the samples it uses.
+We'll use a slightly larger sample size this time. As we'll see, PCA works better with larger samples.
 
 ```python
 sample_size = 400

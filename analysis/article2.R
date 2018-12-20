@@ -1,7 +1,7 @@
 library(rjson)
 
-text_tokens = fromJSON(file = "./text_list_processed.json")
-hand_tokens = fromJSON(file = "./hand_list_processed.json")
+text_tokens = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list_processed_ands.json")
+hand_tokens = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/hand_list_processed.json")
 
 hand_df = data.frame(text_tokens, hand_tokens)
 num_pbs_words = NROW(hand_df[hand_df$hand_tokens == "pbs",])
@@ -38,33 +38,37 @@ all_freqs = all_freqs[order(-all_freqs$absfreqdif),]
 head(all_freqs[, c(1, 3, 5, 6)], 5)
 
 sample_size = 400
-sample_shift = 100
-sample_overlap = sample_size - sample_shift
-
-num_samples = (length(text_tokens) - sample_overlap) %/% sample_shift
-num_words = (num_samples - 1) * sample_shift + sample_size
+#sample_shift = 100
+#sample_overlap = sample_size - sample_shift
+#num_samples = (length(text_tokens) - sample_overlap) %/% sample_shift
+#num_words = (num_samples - 1) * sample_shift + sample_size
+#culled_word_tokens = text_tokens[1:num_words]
+#word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_shift, c)
+#word_groups = split(word_matrix, row(word_matrix))
+num_samples = length(text_tokens) %/% sample_size
+num_words = num_samples * sample_size
 culled_word_tokens = text_tokens[1:num_words]
-word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_shift, c)
+word_matrix = rollapply(culled_word_tokens, sample_size, by = sample_size, c)
 word_groups = split(word_matrix, row(word_matrix))
 
 culled_hand_tokens = hand_tokens[1:num_words]
-hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_shift, c)
+#hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_shift, c)
+hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_size, c)
 hand_groups = split(hand_matrix, row(hand_matrix))
 hand_majorities = sapply(hand_groups, function(x) names(which.max(table(x))))
-# explain that labels are made to correspond to indices in previous plot
-sample_labels = paste(hand_majorities, as.character(4*1:num_samples-3), sep = "_")
 
+# explain that labels are made to correspond to indices in previous plot
+sample_labels = paste(hand_majorities, as.character((sample_size/100)*1:num_samples-(sample_size/100-1)), sep = "_")
 names(word_groups) = sample_labels
 
 library(stylo)
-library(ggbiplot)
 
 # describe why we need function words
 all_freqs$mfw = (all_freqs$PBSrelFreq + all_freqs$MWSrelFreq) / 2
 all_freqs = all_freqs[order(-all_freqs$mfw),]
 mfw = head(all_freqs$word, 200)
 
-function_words = fromJSON(file = "./f_words_frankenstein.json")
+function_words = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/f_words_frankenstein.json")
 freqs = make.table.of.frequencies(word_groups, features = function_words)
 samples = as.data.frame(as.matrix.data.frame(freqs))
 rnames = rownames(freqs)
@@ -72,5 +76,56 @@ cnames = colnames(freqs)
 rownames(samples) = rnames
 colnames(samples) = cnames
 
+library(ggbiplot)
+
 samples_pca = prcomp(samples, center = TRUE, scale. = TRUE)
 ggbiplot(samples_pca, labels = rownames(samples), groups = hand_majorities, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE, varname.size = 2)
+
+# PCA 2
+
+thelastman = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/mws_the-last-man.json")
+stirvyne = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/pbs_st-irvyne.json")
+zastrozzi = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/pbs_zastrozzi.json")
+glenarvon = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/lam_glenarvon.json")
+
+training_texts = list(thelastman, 
+#                      glenarvon,
+                      stirvyne, 
+                      zastrozzi)
+names(training_texts) = c("mws_the-last-man", 
+#                          "lam_glenarvon",
+                          "pbs_st-irvyne", 
+                          "pbs_zastrozzi")
+sample_size = 5000
+training_samples = make.samples(training_texts, sampling = "normal.sampling", sample.size = sample_size)
+
+function_words = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/f_words_shelleys.json")
+training_freqs = make.table.of.frequencies(training_samples, features = function_words)
+
+training_freqs_df = as.data.frame(as.matrix.data.frame(training_freqs))
+rownames(training_freqs_df) = rownames(training_freqs)
+colnames(training_freqs_df) = colnames(training_freqs)
+
+author_names = substr(rownames(training_freqs), 1, 3)
+#sample_no = substr(rownames(training_freqs), nchar(rownames(training_freqs))-1, nchar(rownames(training_freqs)))
+
+training_pca = prcomp(training_freqs_df, center = TRUE, scale. = TRUE)
+
+ggbiplot(training_pca, groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8)
+
+frankenstein_sc = scale(samples, center = training_pca$center)
+frankenstein_pred = frankenstein_sc %*% training_pca$rotation
+training_plus_pca = training_pca
+training_plus_pca$x = rbind(training_plus_pca$x, frankenstein_pred)
+franken_names = paste(rep("F", num_samples), substr(rownames(samples), 1, 3), sep = "-")
+franken_nums = substr(rownames(samples), 5, nchar(rownames(samples)))
+
+
+ggbiplot(training_plus_pca, 
+         labels = c(author_names, franken_nums), 
+         groups = c(author_names, franken_names), var.axes = TRUE, 
+         choices = c(1, 2),
+         ellipse = TRUE, var.scale = 0.2, varname.adjust = 8)
+
+# conclusion: differences between MWS and PBS do not translate very strongly to Frankenstein. reference to hypothesis about collaborative style
+# However, we can take a look at some function words that stand out (briefly discuss 'which'). Investigate use of thou/you and thine/your.
