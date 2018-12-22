@@ -173,6 +173,7 @@ ggbiplot(samples_pca, labels = rownames(samples),
 The resulting figure plots the samples according to the two dimensions (*principle components*) that best explain the variance. It also shows how the original features (the function words) relate to these two dimensions.
 
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca1_arrow.png?raw=true "PCA of Frankenstein")
+*Figure 2*
 
 One thing that stands out is how spread out the different samples that were penned by Percy are. In general, Percy's earlier contributions around index 100 and 150 form a separate cluster from Percy's later contributions around index 600. This could be explained by the fact that the later samples are from the Fair Copy whereas the earlier samples are from an earlier draft. In other words the earlier samples may represent original contributions by Percy whereas the later sample represent text that was edited by Percy but originally authored by Mary.
 
@@ -238,6 +239,12 @@ ggbiplot(training_pca, labels = rep("*", num_train_samples),
          varname.adjust = 8, ellipse = TRUE)
 ```
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_all_arrows.png?raw=true "PCA of Other Works")
+*Figure 3*
+
+[Insert analysis of PCA, which, pronouns]
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_projection.png?raw=true "PCA of Other Works")
+*Figure 4*
 
 # References
 
