@@ -33,7 +33,7 @@ The code above stores the amount of words that were authored by Percy in `num_pb
 This shows that more than 11% of the 62421 words in the Frankenstein draft were penned by Percy. Surprisingly, this is a bit more than the 4000-5000 words estimated by Charles E. Robinson (2008, p. 25), who created the annotated edition on which our own annotations are based.
 Our estimate might have been more in line with Robinson's if we had taken into account that although the final pages of Chapter 18 were (re)written in Percy's hand, much of the text could have been based on an earlier draft by Mary.
 
-As a next step we could take a look at how Percy's contributions are distributed throughout the draft:
+As a next step we could take a look at how Percy's contributions are distributed throughout the draft. In order to do this, we'll divide the novel into a large number of equally sized stretches of text (so-called *samples*).
 
 ```python
 library(zoo)
@@ -44,6 +44,9 @@ num_tokens = num_samples * sample_size
 culled_hand_tokens = hand_tokens[1:num_tokens]
 hand_matrix = rollapply(culled_hand_tokens, sample_size, by = sample_size, c)
 hand_groups = split(hand_matrix, row(hand_matrix))
+```
+Now we'll count for each sample how many words were written by Percy and plot the results.
+```python
 pbs_proportions = sapply(hand_groups, function(x) sum(x == "pbs"))
 plot(pbs_proportions, ylim = c(0,100), type = 'l',
      main = "Percy's contribution throughout Frankenstein",
@@ -56,7 +59,7 @@ plot(pbs_proportions, ylim = c(0,100), type = 'l',
 
 This plot shows that Percy contributed both shorter additions (represented by the smaller spikes) and longer (> 100 words) stretches of text (around index 100, 150 and 600 for example).
 
-Now let's take a look at what Percy's contribution mostly consists of.
+Now let's take a look at what Percy's contributions mostly consist of. For a start, we could look for the words that are used much more frequently by one author compared to the other. We shouldn't just look at the raw numbers, though. After all, Percy only contributed about 11% of all words. We can take this into account by dividing the raw word counts for each author by their respective total number of words contributed.
 
 ```python
 mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_tokens))
@@ -72,7 +75,7 @@ all_freqs$freqdif = all_freqs$PBSrelFreq - all_freqs$MWSrelFreq
 all_freqs$absfreqdif = abs(all_freqs$freqdif)
 all_freqs = all_freqs[order(-all_freqs$absfreqdif),]
 ```
-By looking at the first five rows of `all_freqs`, we'll see what the largest differences between Mary and Percy in terms of word frequency are:
+After sorting by absolute frequency differential, we can look at the first five rows of `all_freqs` to see which words can clearly be associated with one author over the other.
 ```
 > head(all_freqs[, c(1, 3, 5, 6)], 5)
       word  MWSrelFreq PBSrelFreq      freqdif
@@ -87,7 +90,7 @@ Note that this way of calculating frequency differences favours authorial differ
 We're starting to get a better picture of Percy's additions, but if we want to dig deeper, we will need more sophisticated statistical methods.
 
 # Principle Component Analysis 1
-One aspect of PCA that makes it more sophisticated is that it allows us to look at what separates Percy's additions from Mary's writing in granular detail. In other words, can we find distinctive features in those longer stretches of text that were penned by Percy?
+One aspect of PCA that makes it more sophisticated is that it allows us to look at what separates Percy's additions from Mary's writing in granular detail. In other words, it may find distinctive words in those longer stretches of text that were penned by Percy.
 
 We'll use a slightly larger sample size this time. As we'll see, PCA works better with larger samples.
 
@@ -109,23 +112,23 @@ hand_groups = split(hand_matrix, row(hand_matrix))
 hand_majorities = sapply(hand_groups, function(x) names(which.max(table(x))))
 ```
 
-We'll give each sample a name that includes an index number that corresponds to the indices in Figure 1.
+For convenience, we'll give each sample a name that includes an index number that corresponds to the indices in Figure 1.
 
 ```python
 sample_labels = paste(hand_majorities, as.character(4*1:num_samples-3), sep = "_")
 names(word_groups) = sample_labels
 ```
 
-Now we've prepared our text it is time to create the feature set that will be used by PCA. For this analysis we'll only use frequent words as our features. However, we shouldn't just use any frequent words. For example, certain characters' names will be much more frequent in one part of the book compared to another part. But such a difference would not really indicate any distinction in writing style between Mary and Percy. As such, we'll only look at the frequency of so-called *function words*. These words, which include articles (e.g. *the*, *a*), pronouns (e.g. *which*, *you*), etcetera, usually perform a grammatical function rather than represent a specific meaning. As a result they are not as sensitive to the specific topic at hand.
+Now we've prepared our text it is time to create the feature set that will be used by the PCA. For this analysis, we'll only use frequent words as our features. However, we shouldn't just use any frequent words. For example, certain characters' names will be much more frequent in one part of the book compared to another part. But such a difference would not really indicate any distinction in writing style between Mary and Percy. As such, we'll only look at the frequency of so-called *function words*. These words, which include articles (e.g. *the*, *a*), pronouns (e.g. *which*, *you*), etcetera, usually perform a grammatical function rather than represent a specific meaning. As a result they are not as sensitive to the specific topic at hand.
 
-First, I sorted the words in Frankenstein by frequency, while accounting for the proportion of each author's contribution.
+First, I sorted the words in *Frankenstein* by frequency, while accounting for the proportion of each author's contribution.
 
 ```python
 all_freqs$mfw = (all_freqs$PBSrelFreq + all_freqs$MWSrelFreq) / 2
 all_freqs = all_freqs[order(-all_freqs$mfw),]
 ```
 
-Subsequently, I went through the sorted words by hand and picked out the function words until I had a list of the 200 most frequent function words.
+Subsequently, I went through the sorted words by hand and picked out the function words until I had a list of the 200 most frequent function words. I saved this list in a .json array.
 
 Next, we'll load this list into *R* and use it to transform our samples into feature vectors of which the values represent the frequencies of the function words in that sample.
 
@@ -134,27 +137,42 @@ library(stylo)
 
 function_words = fromJSON(file = "./f_words_frankenstein.json")
 freqs = make.table.of.frequencies(word_groups, features = function_words)
-samples = as.data.frame(as.matrix.data.frame(freqs))
-rnames = rownames(freqs)
-cnames = colnames(freqs)
-rownames(samples) = rnames
-colnames(samples) = cnames
+```
+The `make.table.of.frequencies()` function from the `stylo` library takes each sample and calculates for each function word in the list how often it occurs in that sample. That number is then turned into a proportion by dividing it by the sample size.
+
+By looking at the first few rows and columns of `freqs`, we can get a feeling for what the resulting features vectors are like:
+
+```
+> freqs[1:3, 1:10]
+       the    i  and   of   to   my    a that   in  was
+mws_1 3.75 1.75 2.75 4.25 3.25 1.75 1.75 1.25 2.25 3.75
+mws_5 5.50 2.00 2.50 4.25 3.75 3.75 1.50 2.50 0.75 1.25
+mws_9 5.00 3.25 3.50 4.50 3.00 4.75 1.50 0.75 1.50 1.75
 ```
 
-Now we are finally ready to do our first PCA. PCA basically looks at each sample as a point in a multidimensional space. In our case, every dimension of that space represents the frequency of one of the 200 function words. The PCA then tries to find new dimensions (based on the existing ones) that best explain the differences between the predetermined classes--samples labelled Mary versus those labelled Percy.
+The `stylo` library actually contains functions for PCA and other analyses, but we'll use the built-in PCA function because it is a little more flexible. As such, we need to change the `stylo.data` object into a standard *R* dataframe.
+
+```python
+samples = as.data.frame(as.matrix.data.frame(freqs))
+rownames(samples) = rownames(freqs)
+colnames(samples) = colnames(freqs)
+```
+
+Now we are finally ready to do our first PCA. PCA basically looks at each sample as a point in a multidimensional space. In our case, every dimension of that space represents the frequency of one of the 200 function words. The PCA then tries to find new dimensions (based on the existing ones) that best explain the differences between the predetermined classes (samples labelled Mary versus those labelled Percy).
 
 ```python
 library(ggbiplot)
 
 samples_pca = prcomp(samples, center = TRUE, scale. = TRUE)
 ggbiplot(samples_pca, labels = rownames(samples),
+         labels = substr(rownames(samples), 5, nchar(rownames(samples))),
          groups = hand_majorities, var.axes = TRUE, var.scale = 0.2,
          varname.adjust = 8, ellipse = TRUE, varname.size = 2)
 ```
 
 The resulting figure plots the samples according to the two dimensions (*principle components*) that best explain the variance. It also shows how the original features (the function words) relate to these two dimensions.
 
-![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca_frankenstein_arrow.png?raw=true "PCA of Frankenstein")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca1_arrow.png?raw=true "PCA of Frankenstein")
 
 One thing that stands out is how spread out the different samples that were penned by Percy are. In general, Percy's earlier contributions around index 100 and 150 form a separate cluster from Percy's later contributions around index 600. This could be explained by the fact that the later samples are from the Fair Copy whereas the earlier samples are from an earlier draft. In other words the earlier samples may represent original contributions by Percy whereas the later sample represent text that was edited by Percy but originally authored by Mary.
 
@@ -166,9 +184,57 @@ The final thing to note about this plot is that it shows that the PCA wasn't ver
 
 Unfortunately, we can't simply increase the sample size to get a more successful separation of Percy's contributions to Frankenstein. As most of Percy's longer contributions are only a couple of hundred words long, larger samples would always include a considerable amount of text by Mary.
 
-One way around this problem would be to look at other texts written by Mary and Percy respectively. However, we can't just use any texts. We need to be sure that the Shelley's did not collaborate on these texts or edited each other's writing. Percy's premature death rather simplifies finding material authored solely by Mary. Her first work after the death of husband was the historical novel *Valperga*, but this work was heavily edited by Mary’s father William Godwin (Rossington, 2000, p. 103). Instead, her next work, the science fiction novel *The Last Man*, was selected as a suitable text for PCA.
+One way around this problem would be to look at other texts written by Mary and Percy respectively. However, we can't just use any texts. We need to be sure that the Shelleys did not collaborate on these texts or edited each other's writing. Percy's premature death rather simplifies finding material authored solely by Mary. Her first work after the death of husband was the historical novel *Valperga*, but this work was heavily edited by Mary’s father William Godwin (Rossington, 2000, p. 103). Instead, her next work, the science fiction novel *The Last Man*, was selected as a suitable text for PCA.
 
-Finding suitable material written by Percy is a bit more difficult. Unfortunately, most of Percy’s later work consists of poetry, which is too different from prose fiction in its structure and diction to be of much use as a training text. However, Percy did publish two novellas, *Zastrozzi* and *St Irvyne*, during his time at Eton College and Oxford University in 1810 (O’Neill, 2004). Crucially, he did not start his relationship with William Godwin, which led to his acquaintance with Mary, until January of 1812 (O’Neill, 2004). It can be concluded then that Mary had no influence whatsoever on these novellas.
+Finding suitable material written by Percy is a bit more difficult. Unfortunately, most of Percy’s later work consists of poetry, which is too different from prose fiction in its structure and diction to be of much use as a training text. However, Percy did publish two novellas, *Zastrozzi* and *St Irvyne*, during his time at Eton College and Oxford University in 1810 (O’Neill, 2004). Crucially, he did not start his relationship with William Godwin, which led to his acquaintance with Mary, until January of 1812 (O’Neill, 2004). It can be concluded, then, that Mary had no influence whatsoever on these novellas.
+
+Of course, these texts also have to be prepared for use in a PCA. Fortunately, this process is much easier for these novels than it was for *Frankenstein*, as we don't need to keep track of hand changes. I simply downloaded the raw text files from [Project Gutenberg](https://www.gutenberg.org) and [Project Gutenberg of Australia](http://gutenberg.net.au), ran a simple *Python* tokenization script based on regular expressions, and saved the tokenized texts as .json arrays. For example:
+```python
+import json
+import re
+
+def tokenize(text):
+    split_list = [' ', '!', '(', ';', "'", '?', '\n', '^', ')', '–', '.', ',', '—', '>', '"', ':', '=', '-']
+    raw_split = re.split(r"[{}]+".format(re.escape("".join(split_list))), text)
+    word_list = [wrd.lower() for wrd in raw_split if len(wrd) > 0]
+    return word_list
+
+with open("mws_the-last-man.txt") as f:
+    thelastman = f.read()
+
+thelastman_list = tokenize(thelastman)
+with open("mws_the-last-man.json", "w") as f:
+    f.write(json.dumps(thelastman_list))
+```
+
+After preprocessing the new texts, we can prepare them for PCA in much the same way as we did for *Frankenstein*. However, this time we'll use the `make.samples()` function from the `stylo` package to sample the texts. We'll also use a much larger sample size.
+```python
+thelastman = fromJSON(file = "./mws_the-last-man.json")
+stirvyne = fromJSON(file = "./pbs_st-irvyne.json")
+zastrozzi = fromJSON(file = "./pbs_zastrozzi.json")
+training_texts = list(thelastman, stirvyne, zastrozzi)
+names(training_texts) = c("mws_the-last-man", "pbs_st-irvyne", "pbs_zastrozzi")
+
+sample_size = 5000
+training_samples = make.samples(training_texts, sampling = "normal.sampling", sample.size = sample_size)
+```
+Furthermore, we'll use a different function word list: one that also takes into account the most frequent function words in *The Last Man*, *St. Irvyne* and *Zastrozzi*.
+```python
+function_words = fromJSON(file = "./f_words_shelleys.json")
+
+training_freqs = make.table.of.frequencies(training_samples, features = function_words)
+training_freqs_df = as.data.frame(as.matrix.data.frame(training_freqs))
+rownames(training_freqs_df) = rownames(training_freqs)
+colnames(training_freqs_df) = colnames(training_freqs)
+
+training_pca = prcomp(training_freqs_df, center = TRUE, scale. = TRUE)
+```
+Having done the PCA, we can now plot the results:
+```python
+author_names = substr(rownames(training_freqs), 1, 3)
+ggbiplot(training_pca, groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE)
+```
+
 
 # References
 

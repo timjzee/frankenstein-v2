@@ -79,7 +79,7 @@ colnames(samples) = cnames
 library(ggbiplot)
 
 samples_pca = prcomp(samples, center = TRUE, scale. = TRUE)
-ggbiplot(samples_pca, labels = rownames(samples), groups = hand_majorities, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE, varname.size = 2)
+ggbiplot(samples_pca, labels = substr(rownames(samples), 5, nchar(rownames(samples))), groups = hand_majorities, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE, varname.size = 2)
 
 # PCA 2
 
@@ -99,7 +99,7 @@ names(training_texts) = c("mws_the-last-man",
 sample_size = 5000
 training_samples = make.samples(training_texts, sampling = "normal.sampling", sample.size = sample_size)
 
-function_words = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/f_words_shelleys.json")
+function_words = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/f_words_shelleys_franken_compatible.json")
 training_freqs = make.table.of.frequencies(training_samples, features = function_words)
 
 training_freqs_df = as.data.frame(as.matrix.data.frame(training_freqs))
@@ -108,24 +108,33 @@ colnames(training_freqs_df) = colnames(training_freqs)
 
 author_names = substr(rownames(training_freqs), 1, 3)
 #sample_no = substr(rownames(training_freqs), nchar(rownames(training_freqs))-1, nchar(rownames(training_freqs)))
+num_train_samples = NROW(training_freqs_df)
 
 training_pca = prcomp(training_freqs_df, center = TRUE, scale. = TRUE)
 
-ggbiplot(training_pca, groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8)
+ggbiplot(training_pca, labels = rep("*", num_train_samples), groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE)
 
-frankenstein_sc = scale(samples, center = training_pca$center)
+franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
+franken_freqs_df = as.data.frame(as.matrix.data.frame(franken_freqs))
+rownames(franken_freqs_df) = rownames(franken_freqs)
+colnames(franken_freqs_df) = colnames(franken_freqs)
+
+frankenstein_sc = scale(franken_freqs, center = training_pca$center)
 frankenstein_pred = frankenstein_sc %*% training_pca$rotation
 training_plus_pca = training_pca
 training_plus_pca$x = rbind(training_plus_pca$x, frankenstein_pred)
-franken_names = paste(rep("F", num_samples), substr(rownames(samples), 1, 3), sep = "-")
-franken_nums = substr(rownames(samples), 5, nchar(rownames(samples)))
+franken_names = paste(substr(rownames(franken_freqs_df), 1, 3), rep("F", num_samples), sep = "-")
+franken_nums = substr(rownames(samples), 5, nchar(rownames(franken_freqs_df)))
 
 
 ggbiplot(training_plus_pca, 
-         labels = c(author_names, franken_nums), 
+         labels = c(rep("*", num_train_samples), franken_nums), 
          groups = c(author_names, franken_names), var.axes = TRUE, 
-         choices = c(1, 2),
+#         choices = c(1, 2),
          ellipse = TRUE, var.scale = 0.2, varname.adjust = 8)
+
+# add projection of glenarvon samples to show that positioning of frankenstein samples is actually meaningful
+
 
 # conclusion: differences between MWS and PBS do not translate very strongly to Frankenstein. reference to hypothesis about collaborative style
 # However, we can take a look at some function words that stand out (briefly discuss 'which'). Investigate use of thou/you and thine/your.
