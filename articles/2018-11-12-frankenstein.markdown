@@ -232,9 +232,12 @@ training_pca = prcomp(training_freqs_df, center = TRUE, scale. = TRUE)
 Having done the PCA, we can now plot the results:
 ```python
 author_names = substr(rownames(training_freqs), 1, 3)
-ggbiplot(training_pca, groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE)
+num_train_samples = NROW(training_freqs_df)
+ggbiplot(training_pca, labels = rep("*", num_train_samples),
+         groups = author_names, var.axes = TRUE, var.scale = 0.2,
+         varname.adjust = 8, ellipse = TRUE)
 ```
-
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_all_arrows.png?raw=true "PCA of Other Works")
 
 # References
 

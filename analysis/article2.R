@@ -112,7 +112,9 @@ num_train_samples = NROW(training_freqs_df)
 
 training_pca = prcomp(training_freqs_df, center = TRUE, scale. = TRUE)
 
-ggbiplot(training_pca, labels = rep("*", num_train_samples), groups = author_names, var.axes = TRUE, var.scale = 0.2, varname.adjust = 8, ellipse = TRUE)
+ggbiplot(training_pca, labels = rep("*", num_train_samples), 
+         groups = author_names, var.axes = TRUE, var.scale = 0.2, 
+         varname.adjust = 8, ellipse = TRUE, labels.size = 4)
 
 franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
 franken_freqs_df = as.data.frame(as.matrix.data.frame(franken_freqs))
@@ -131,7 +133,7 @@ ggbiplot(training_plus_pca,
          labels = c(rep("*", num_train_samples), franken_nums), 
          groups = c(author_names, franken_names), var.axes = TRUE, 
 #         choices = c(1, 2),
-         ellipse = TRUE, var.scale = 0.2, varname.adjust = 8)
+         ellipse = TRUE, var.scale = 0.2, varname.adjust = 8, labels.size = 4)
 
 # add projection of glenarvon samples to show that positioning of frankenstein samples is actually meaningful
 
