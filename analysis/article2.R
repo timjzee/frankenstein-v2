@@ -21,6 +21,18 @@ plot(pbs_proportions, ylim = c(0,100), type = 'l',
      xlab = "Sample index (Sample size = 100 words)",
      ylab = "% of words in Percy's hand")
 
+#
+text_stretches = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list.json")
+hand_stretches = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/hand_list.json")
+stretches_df = data.frame(text_stretches, hand_stretches)
+stretches_df$tokens = regmatches(stretches_df$text_stretches, gregexpr("[a-zA-Z0-9]+", stretches_df$text_stretches, perl = TRUE))
+stretches_df$num_words = sapply(stretches_df$tokens, function(x) length(x))
+stretches_df$num_words_log = log10(stretches_df$num_words)
+hist(stretches_df[stretches_df$hand_stretches == "pbs",]$num_words_log, xlab = "Contribution length (words)", main = "Histogram of PBS contribution lengths", axes = FALSE)
+axis(1, labels = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), at = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), cex.axis = 0.8, padj = -0.8)
+axis(1, labels = rep(10, 8), at = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), hadj = 1.25, padj = 0.5)
+axis(2, labels = c(0, 100, 200, 300, 400, 500, 600), at = c(0, 100, 200, 300, 400, 500, 600))
+#
 
 mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_tokens))
 mws_freqs = mws_freqs[order(-mws_freqs$Freq),]
@@ -116,6 +128,13 @@ ggbiplot(training_pca, labels = rep("*", num_train_samples),
          groups = author_names, var.axes = TRUE, var.scale = 0.2, 
          varname.adjust = 8, ellipse = TRUE, labels.size = 4)
 
+# check rotation of words for pc1
+rotation_df = as.data.frame(training_pca$rotation)
+rotation_df_ordered = rotation_df[order(-abs(rotation_df$PC1)),]
+rownames(rotation_df_ordered)[1:5]
+rotation_df_ordered[1:5, "PC1"]
+#
+
 franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
 franken_freqs_df = as.data.frame(as.matrix.data.frame(franken_freqs))
 rownames(franken_freqs_df) = rownames(franken_freqs)
@@ -134,6 +153,11 @@ ggbiplot(training_plus_pca,
          groups = c(author_names, franken_names), var.axes = TRUE, 
 #         choices = c(1, 2),
          ellipse = TRUE, var.scale = 0.2, varname.adjust = 8, labels.size = 4)
+
+# what makes some of the pbs-F samples stand out?
+# e.g. sample 213
+franken_freqs_df["pbs_213",]
+
 
 # add projection of glenarvon samples to show that positioning of frankenstein samples is actually meaningful
 

@@ -59,6 +59,11 @@ plot(pbs_proportions, ylim = c(0,100), type = 'l',
 
 This plot shows that Percy contributed both shorter additions (represented by the smaller spikes) and longer (> 100 words) stretches of text (around index 100, 150 and 600 for example).
 
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/PBS_lengths.png?raw=true "Length of Percy's contributions")
+*Figure 2*
+[add histogram of length of Percy's additions using non-tokenized lists]
+
 Now let's take a look at what Percy's contributions mostly consist of. For a start, we could look for the words that are used much more frequently by one author compared to the other. We shouldn't just look at the raw numbers, though. After all, Percy only contributed about 11% of all words. We can take this into account by dividing the raw word counts for each author by their respective total number of words contributed.
 
 ```python
@@ -241,10 +246,43 @@ ggbiplot(training_pca, labels = rep("*", num_train_samples),
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_all_arrows.png?raw=true "PCA of Other Works")
 *Figure 3*
 
-[Insert analysis of PCA, which, pronouns]
+[remove arrows for you/your; add arrows for oh ah alas]
+[Insert visual analysis of PCA: clear separation between all PBS and MWS samples, reflected in more explained variance compared to pca 1, separation mainly due to PC1; which, pronouns, interjections: oh ah alas]
+[look at 5 strongest rotations of PC1: confirms much of what we had already seen; new insight --> while/whilst]
+[check old-fashioned variants and interjections relative frequencies in Frankenstein --> bar graphs]
 
-![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_projection.png?raw=true "PCA of Other Works")
+
+
+```python
+franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
+franken_freqs_df = as.data.frame(as.matrix.data.frame(franken_freqs))
+rownames(franken_freqs_df) = rownames(franken_freqs)
+colnames(franken_freqs_df) = colnames(franken_freqs)
+
+frankenstein_sc = scale(franken_freqs, center = training_pca$center)
+frankenstein_pred = frankenstein_sc %*% training_pca$rotation
+training_plus_pca = training_pca
+training_plus_pca$x = rbind(training_plus_pca$x, frankenstein_pred)
+franken_names = paste(substr(rownames(franken_freqs_df), 1, 3), rep("F", num_samples), sep = "-")
+franken_nums = substr(rownames(samples), 5, nchar(rownames(franken_freqs_df)))
+
+ggbiplot(training_plus_pca,
+         labels = c(rep("*", num_train_samples), franken_nums),
+         groups = c(author_names, franken_names), var.axes = TRUE,
+         ellipse = TRUE, var.scale = 0.2, varname.adjust = 8, labels.size = 4)
+```
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_projection.png?raw=true "Frankenstein Samples projected on PCA of Other Works")
 *Figure 4*
+
+[visual analysis: in general most franken samples are closer to mary's samples, but most samples do not overlap with mary's samples, which is in line with certain theory; some of the samples belonging to the fair copy and sample around the 210 index]
+[look at what makes sample 213 have Percy's writing style; thy thou thee]
+
+# Conclusion
+Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and old-fashioned language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using these features.
+
+[also some features that are distinctive of authors respective writing styles, that cannot really be used for authorship attribution of franknestein because they are spread throughout the novel, such as *and* and *which*]
+
+
 
 # References
 
