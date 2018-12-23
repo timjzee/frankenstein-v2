@@ -25,13 +25,17 @@ plot(pbs_proportions, ylim = c(0,100), type = 'l',
 text_stretches = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/text_list.json")
 hand_stretches = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/sga-data/output/hand_list.json")
 stretches_df = data.frame(text_stretches, hand_stretches)
-stretches_df$tokens = regmatches(stretches_df$text_stretches, gregexpr("[a-zA-Z0-9]+", stretches_df$text_stretches, perl = TRUE))
+stretches_df$tokens = regmatches(stretches_df$text_stretches, gregexpr("[a-zA-Z0-9&]+", stretches_df$text_stretches, perl = TRUE))
 stretches_df$num_words = sapply(stretches_df$tokens, function(x) length(x))
 stretches_df$num_words_log = log10(stretches_df$num_words)
 hist(stretches_df[stretches_df$hand_stretches == "pbs",]$num_words_log, xlab = "Contribution length (words)", main = "Histogram of PBS contribution lengths", axes = FALSE)
-axis(1, labels = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), at = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), cex.axis = 0.8, padj = -0.8)
-axis(1, labels = rep(10, 8), at = c(0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5), hadj = 1.25, padj = 0.5)
-axis(2, labels = c(0, 100, 200, 300, 400, 500, 600), at = c(0, 100, 200, 300, 400, 500, 600))
+axis(1, labels = seq(0, 3.5, 0.5), at = seq(0, 3.5, 0.5), cex.axis = 0.8, padj = -0.8)
+axis(1, labels = rep(10, 8), at = seq(0, 3.5, 0.5), hadj = 1.25, padj = 0.5)
+axis(2, labels = seq(0, 600, 100), at = seq(0, 600, 100))
+
+short_stretches = sum(stretches_df[stretches_df$hand_stretches == "pbs" & stretches_df$num_words < 100,]$num_words)
+long_stretches = sum(stretches_df[stretches_df$hand_stretches == "pbs" & stretches_df$num_words >= 100,]$num_words)
+short_stretches / (short_stretches + long_stretches)
 #
 
 mws_freqs = as.data.frame(table(hand_df[hand_df$hand_tokens == "mws",]$text_tokens))
@@ -131,8 +135,24 @@ ggbiplot(training_pca, labels = rep("*", num_train_samples),
 # check rotation of words for pc1
 rotation_df = as.data.frame(training_pca$rotation)
 rotation_df_ordered = rotation_df[order(-abs(rotation_df$PC1)),]
-rownames(rotation_df_ordered)[1:5]
-rotation_df_ordered[1:5, "PC1"]
+structure(rotation_df_ordered[1:5, "PC1"], 
+          names=rownames(rotation_df_ordered)[1:5])
+
+counts <- table(mtcars$vs, mtcars$gear)
+hand_df_whil = hand_df[hand_df$text_tokens == "while" | hand_df$text_tokens == "whilst",]
+hand_df_whil$text_tokens = factor(hand_df_whil$text_tokens)
+hand_df_whil$hand_tokens = factor(hand_df_whil$hand_tokens)
+whil_counts = table(hand_df_whil$text_tokens, hand_df_whil$hand_tokens)
+#whil_counts["mws",] = whil_counts["mws",] / nrow(hand_df[hand_df$hand_tokens == "mws",])
+#whil_counts["pbs",] = whil_counts["pbs",] / nrow(hand_df[hand_df$hand_tokens == "pbs",])
+whil_counts[, "mws"] = whil_counts[, "mws"] / sum(whil_counts[, "mws"])
+whil_counts[, "pbs"] = whil_counts[, "pbs"] / sum(whil_counts[, "pbs"])
+
+par(mfrow=c(1, 1), mar=c(5, 4, 6, 2))
+barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein",
+        ylab = "Hand Annotation", col = c("gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+        legend = rownames(whil_counts), horiz = TRUE, names.arg = colnames(whil_counts),
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
 #
 
 franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
