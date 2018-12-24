@@ -318,8 +318,13 @@ barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein"
 Now let's take a look at the 2nd person pronouns. I'll spare you the code this time.
 
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/theethouyou.png?raw=true "Distribution of thee/thou/you in Frankenstein")
-*Figure 6*
+*Figure 6a*
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/thinethyyour.png?raw=true "Distribution of thine/thy/your in Frankenstein")
+*Figure 6b*
+
+Finally, we'll plot the frequencies of the interjections. As these interjections can't really be contrasted with a standard variant (as was the case in the previous plots), we'll plot the respective interjections as percentages of the two authors' total word counts.
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/interjections.png?raw=true "Distribution of interjections in Frankenstein")
 *Figure 7*
 
 [look at 5 strongest rotations of PC1: confirms much of what we had already seen; new insight --> while/whilst]
