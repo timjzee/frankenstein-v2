@@ -299,8 +299,28 @@ However, these variable loadings also reveal an alternation that had previously 
 We need to keep in mind that we have not established yet that the differences in the use of *while/whilst*, the pronouns and the interjections also play a role in *Frankenstein*. So let's take a look at the frequencies in *Frankenstein*.
 
 First up, the alternation between *while* and *whilst*:
+```python
+hand_df_whil = hand_df[hand_df$text_tokens == "while" | hand_df$text_tokens == "whilst",]
+hand_df_whil$text_tokens = factor(hand_df_whil$text_tokens)
+hand_df_whil$hand_tokens = factor(hand_df_whil$hand_tokens)
+whil_counts = table(hand_df_whil$text_tokens, hand_df_whil$hand_tokens)
+whil_counts[, "mws"] = whil_counts[, "mws"] / sum(whil_counts[, "mws"])
+whil_counts[, "pbs"] = whil_counts[, "pbs"] / sum(whil_counts[, "pbs"])
 
+barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein",
+        ylab = "Hand Annotation", col = c("gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+        legend = rownames(whil_counts), horiz = TRUE, names.arg = colnames(whil_counts),
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+```
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/whilewhilst.png?raw=true "Distribution of while/whilst in Frankenstein")
+*Figure 5*
+
+Now let's take a look at the 2nd person pronouns. I'll spare you the code this time.
+
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/theethouyou.png?raw=true "Distribution of thee/thou/you in Frankenstein")
+*Figure 6*
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/thinethyyour.png?raw=true "Distribution of thine/thy/your in Frankenstein")
+*Figure 7*
 
 [look at 5 strongest rotations of PC1: confirms much of what we had already seen; new insight --> while/whilst]
 [check old-fashioned variants and interjections relative frequencies in Frankenstein --> bar graphs]

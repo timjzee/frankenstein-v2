@@ -138,7 +138,6 @@ rotation_df_ordered = rotation_df[order(-abs(rotation_df$PC1)),]
 structure(rotation_df_ordered[1:5, "PC1"], 
           names=rownames(rotation_df_ordered)[1:5])
 
-counts <- table(mtcars$vs, mtcars$gear)
 hand_df_whil = hand_df[hand_df$text_tokens == "while" | hand_df$text_tokens == "whilst",]
 hand_df_whil$text_tokens = factor(hand_df_whil$text_tokens)
 hand_df_whil$hand_tokens = factor(hand_df_whil$hand_tokens)
@@ -148,11 +147,43 @@ whil_counts = table(hand_df_whil$text_tokens, hand_df_whil$hand_tokens)
 whil_counts[, "mws"] = whil_counts[, "mws"] / sum(whil_counts[, "mws"])
 whil_counts[, "pbs"] = whil_counts[, "pbs"] / sum(whil_counts[, "pbs"])
 
-par(mfrow=c(1, 1), mar=c(5, 4, 6, 2))
+#par(mfrow=c(1, 1), mar=c(5, 4, 6, 2))
 barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein",
         ylab = "Hand Annotation", col = c("gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
         legend = rownames(whil_counts), horiz = TRUE, names.arg = colnames(whil_counts),
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+
+hand_df_pron1 = hand_df[hand_df$text_tokens == "you" | 
+                         hand_df$text_tokens == "thee" | 
+                         hand_df$text_tokens == "thou",]
+hand_df_pron1$text_tokens = factor(hand_df_pron1$text_tokens)
+hand_df_pron1$hand_tokens = factor(hand_df_pron1$hand_tokens)
+pron_counts1 = table(hand_df_pron1$text_tokens, hand_df_pron1$hand_tokens)
+#pron_counts1[1,] = pron_counts1[1,] + pron_counts1[2,]
+#pron_counts1 = pron_counts1[c(1,3),]
+#rownames(pron_counts1) = c("thee/thou", "you")
+#par(mfrow=c(1, 1), mar=c(5, 4, 4, 2))
+pron_counts1[, "mws"] = pron_counts1[, "mws"] / sum(pron_counts1[, "mws"])
+pron_counts1[, "pbs"] = pron_counts1[, "pbs"] / sum(pron_counts1[, "pbs"])
+barplot(pron_counts1, main = "Distribution of 'thee' / 'thou' / 'you' in Frankenstein",
+        ylab = "Hand Annotation", col = c("gray", "dark gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+        legend = rownames(pron_counts1), horiz = TRUE, names.arg = colnames(pron_counts1),
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+
+
+hand_df_pron2 = hand_df[hand_df$text_tokens == "thy" | 
+                          hand_df$text_tokens == "thine" | 
+                          hand_df$text_tokens == "your",]
+hand_df_pron2$text_tokens = factor(hand_df_pron2$text_tokens)
+hand_df_pron2$hand_tokens = factor(hand_df_pron2$hand_tokens)
+pron_counts2 = table(hand_df_pron2$text_tokens, hand_df_pron2$hand_tokens)
+pron_counts2[, "mws"] = pron_counts2[, "mws"] / sum(pron_counts2[, "mws"])
+pron_counts2[, "pbs"] = pron_counts2[, "pbs"] / sum(pron_counts2[, "pbs"])
+barplot(pron_counts2, main = "Distribution of 'thine' / 'thy' / 'your' in Frankenstein",
+        ylab = "Hand Annotation", col = c("gray", "dark gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+        legend = rownames(pron_counts2), horiz = TRUE, names.arg = colnames(pron_counts2),
         args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
+
 #
 
 franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
