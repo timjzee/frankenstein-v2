@@ -181,9 +181,9 @@ pron_counts2 = table(hand_df_pron2$text_tokens, hand_df_pron2$hand_tokens)
 pron_counts2[, "mws"] = pron_counts2[, "mws"] / sum(pron_counts2[, "mws"])
 pron_counts2[, "pbs"] = pron_counts2[, "pbs"] / sum(pron_counts2[, "pbs"])
 barplot(pron_counts2, main = "Distribution of 'thine' / 'thy' / 'your' in Frankenstein",
-        ylab = "Hand Annotation", col = c("gray", "dark gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+        ylab = "Hand Annotation", col = c("dark gray", "gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
         legend = rownames(pron_counts2), horiz = TRUE, names.arg = colnames(pron_counts2),
-        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
 
 hand_df_inter = hand_df[hand_df$text_tokens == "o" | 
                           hand_df$text_tokens == "oh" | 
