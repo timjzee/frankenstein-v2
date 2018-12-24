@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hacking Frankenstein (Part 2): Exploring Percy's contribution"
-date:   2018-11-12 01:15:00 +0100
+date:   2018-12-24 04:15:00 +0100
 categories: linguistics literature text-mining
 ---
 
@@ -360,17 +360,27 @@ ggbiplot(training_plus_pca,
 
 Once again, I've given the *Frankenstein* samples labels that correspond to the indices in Figure 1, so that we have some idea of the location of these samples in the novel.
 
+We can see that, in general, the *Frankenstein* samples are closer to Mary's *The Last Man* samples than Percy's *Zastrozzi* and *St. Irvyne* samples. However, some of the *Frankenstein* samples that were written in Percy's hand (see the purple labels in Figure 8) seem to be somewhat separate of the rest, especially along the PC1 axis.
 
+If we take a closer look at one of these samples, we can see that the previously identified distinctive features may play a role in separating it from the bulk of *Frankenstein* samples.
 
-[visual analysis: in general most franken samples are closer to mary's samples, but most samples do not overlap with mary's samples, which is in line with certain theory; some of the samples belonging to the fair copy and sample around the 210 index]
-[look at what makes sample 213 have Percy's writing style; thy thou thee]
+For example, if we take sample 213, and we look at the total amount of archaic pronoun forms, we find the following:
+```python
+franken_freqs_df$th = franken_freqs_df$thee + franken_freqs_df$thou +
+                      franken_freqs_df$thy + franken_freqs_df$thine
+```
+```
+> mean(franken_th_df$th) * 4
+[1] 0.2564103
+> franken_th_df["pbs_213",]$th * 4
+[1] 16
+```
+In other words, the mean amount of archaic pronouns across all 400-word samples of *Frankenstein* is much smaller than 1, whereas sample 213 contains 16 archaic pronouns. It seems, then, that in certain cases Percy's distinctive use of certain words can be used to identfy stretches of the *Frankenstein* draft that were written in his hand.
 
 # Conclusion
 Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and literary language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using some of the same features.
 
-[also some features that are distinctive of authors respective writing styles, that cannot really be used for authorship attribution of franknestein because they are spread throughout the novel, such as *which*]
-
-
+In a future article, I may look at a more formal way to classify samples of *Frankenstein* as written by Mary or Percy based on the training texts we used in the second PCA. Nevertheless, the analysis in this article led to some interesting insights regarding the differences in Mary and Percy's writing styles.
 
 # References
 
