@@ -154,6 +154,7 @@ barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein"
         args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
 
 hand_df_pron1 = hand_df[hand_df$text_tokens == "you" | 
+                         hand_df$text_tokens == "ye" | 
                          hand_df$text_tokens == "thee" | 
                          hand_df$text_tokens == "thou",]
 hand_df_pron1$text_tokens = factor(hand_df_pron1$text_tokens)
@@ -162,13 +163,13 @@ pron_counts1 = table(hand_df_pron1$text_tokens, hand_df_pron1$hand_tokens)
 #pron_counts1[1,] = pron_counts1[1,] + pron_counts1[2,]
 #pron_counts1 = pron_counts1[c(1,3),]
 #rownames(pron_counts1) = c("thee/thou", "you")
-#par(mfrow=c(1, 1), mar=c(5, 4, 4, 2))
+par(mfrow=c(1, 1), mar=c(5, 4, 6, 2))
 pron_counts1[, "mws"] = pron_counts1[, "mws"] / sum(pron_counts1[, "mws"])
 pron_counts1[, "pbs"] = pron_counts1[, "pbs"] / sum(pron_counts1[, "pbs"])
-barplot(pron_counts1, main = "Distribution of 'thee' / 'thou' / 'you' in Frankenstein",
-        ylab = "Hand Annotation", col = c("gray", "dark gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
+barplot(pron_counts1, main = "Distribution of 'thee' / 'thou' / 'ye' / 'you' in Frankenstein",
+        ylab = "Hand Annotation", col = c("black", "dark gray", "gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
         legend = rownames(pron_counts1), horiz = TRUE, names.arg = colnames(pron_counts1),
-        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
 
 
 hand_df_pron2 = hand_df[hand_df$text_tokens == "thy" | 
@@ -182,6 +183,20 @@ pron_counts2[, "pbs"] = pron_counts2[, "pbs"] / sum(pron_counts2[, "pbs"])
 barplot(pron_counts2, main = "Distribution of 'thine' / 'thy' / 'your' in Frankenstein",
         ylab = "Hand Annotation", col = c("gray", "dark gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
         legend = rownames(pron_counts2), horiz = TRUE, names.arg = colnames(pron_counts2),
+        args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.12), xpd = TRUE, bty = "n"))
+
+hand_df_inter = hand_df[hand_df$text_tokens == "o" | 
+                          hand_df$text_tokens == "oh" | 
+                          hand_df$text_tokens == "ah" | 
+                          hand_df$text_tokens == "alas",]
+hand_df_inter$text_tokens = factor(hand_df_inter$text_tokens)
+hand_df_inter$hand_tokens = factor(hand_df_inter$hand_tokens)
+inter_counts = table(hand_df_inter$text_tokens, hand_df_inter$hand_tokens)
+inter_counts[, "mws"] = inter_counts[, "mws"] / NROW(hand_df[hand_df$hand_tokens == "mws",]) * 100
+inter_counts[, "pbs"] = inter_counts[, "pbs"] / NROW(hand_df[hand_df$hand_tokens == "pbs",]) * 100
+barplot(inter_counts, main = "Distribution of 'ah' / 'alas' / 'o' / 'oh' in Frankenstein",
+        ylab = "Hand Annotation", col = c("black", "dark gray", "gray", "white"), xpd = FALSE, xlab = "Percentage of respective authors' total word counts",
+        legend = rownames(inter_counts), horiz = TRUE, names.arg = colnames(inter_counts),
         args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
 
 #

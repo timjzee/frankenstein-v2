@@ -317,27 +317,31 @@ barplot(whil_counts, main = "Distribution of 'while' / 'whilst' in Frankenstein"
 
 Now let's take a look at the 2nd person pronouns. I'll spare you the code this time.
 
-![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/theethouyou.png?raw=true "Distribution of thee/thou/you in Frankenstein")
+![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/theethouyeyou.png?raw=true "Distribution of thee/thou/you in Frankenstein")
 *Figure 6a*
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/thinethyyour.png?raw=true "Distribution of thine/thy/your in Frankenstein")
 *Figure 6b*
 
-Finally, we'll plot the frequencies of the interjections. As these interjections can't really be contrasted with a standard variant (as was the case in the previous plots), we'll plot the respective interjections as percentages of the two authors' total word counts.
+Finally, we'll plot the frequencies of the interjections. As these interjections can't really be contrasted with a standard variant (as was the case in the previous plots), we'll plot the respective interjection frequencies as percentages of the two authors' total word counts.
 
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/interjections.png?raw=true "Distribution of interjections in Frankenstein")
 *Figure 7*
 
-[look at 5 strongest rotations of PC1: confirms much of what we had already seen; new insight --> while/whilst]
-[check old-fashioned variants and interjections relative frequencies in Frankenstein --> bar graphs]
+Based on Figures 5 through 7, we can see that apart from the interjections, all of the words that we identified as differentiating Percy and Mary's other works also play a role in *Frankenstein*.
 
+However, we still have no clue whether these features can be used to actually differentiate samples of Frankenstein that were mostly penned by Percy. For all we know, these distinctive words were mostly part of smaller additions or corrections in samples that were predominantly written by Mary (as was the case with *which*).
 
+To find out, we can do something pretty cool; We can *project* the samples we made for the first PCA, i.e. samples that are 400 words long, on the principle components that were made in our second PCA.
 
+First, we'll update the feature set to be compatible with the second PCA:
 ```python
 franken_freqs = make.table.of.frequencies(word_groups, features = function_words)
 franken_freqs_df = as.data.frame(as.matrix.data.frame(franken_freqs))
 rownames(franken_freqs_df) = rownames(franken_freqs)
 colnames(franken_freqs_df) = colnames(franken_freqs)
-
+```
+And then we can project these frequencies on the principle components, and plot the projection.
+```python
 frankenstein_sc = scale(franken_freqs, center = training_pca$center)
 frankenstein_pred = frankenstein_sc %*% training_pca$rotation
 training_plus_pca = training_pca
@@ -352,15 +356,19 @@ ggbiplot(training_plus_pca,
          ellipse = TRUE, var.scale = 0.2, varname.adjust = 8, labels.size = 4)
 ```
 ![alt text](https://github.com/timjzee/frankenstein-v2/blob/master/articles/pca2_projection.png?raw=true "Frankenstein Samples projected on PCA of Other Works")
-*Figure 5*
+*Figure 8*
+
+Once again, I've given the *Frankenstein* samples labels that correspond to the indices in Figure 1, so that we have some idea of the location of these samples in the novel.
+
+
 
 [visual analysis: in general most franken samples are closer to mary's samples, but most samples do not overlap with mary's samples, which is in line with certain theory; some of the samples belonging to the fair copy and sample around the 210 index]
 [look at what makes sample 213 have Percy's writing style; thy thou thee]
 
 # Conclusion
-Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and literary language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using these features.
+Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and literary language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using some of the same features.
 
-[also some features that are distinctive of authors respective writing styles, that cannot really be used for authorship attribution of franknestein because they are spread throughout the novel, such as *and* and *which*]
+[also some features that are distinctive of authors respective writing styles, that cannot really be used for authorship attribution of franknestein because they are spread throughout the novel, such as *which*]
 
 
 
