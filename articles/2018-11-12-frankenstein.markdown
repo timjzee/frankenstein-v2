@@ -362,9 +362,7 @@ Once again, I've given the *Frankenstein* samples labels that correspond to the 
 
 We can see that, in general, the *Frankenstein* samples are closer to Mary's *The Last Man* samples than Percy's *Zastrozzi* and *St. Irvyne* samples. However, some of the *Frankenstein* samples that were written in Percy's hand (see the purple labels in Figure 8) seem to be somewhat separate of the rest, especially along the PC1 axis.
 
-If we take a closer look at one of these samples, we can see that the previously identified distinctive features may play a role in separating it from the bulk of *Frankenstein* samples.
-
-For example, if we take sample 213, and we look at the total amount of archaic pronoun forms, we find the following:
+If we take a closer look at one of these samples, we can see that the previously identified distinctive features may play a role in separating it from the bulk of *Frankenstein* samples. For example, if we take sample 213, and we look at the total amount of archaic pronoun forms, we find the following:
 ```python
 franken_freqs_df$th = franken_freqs_df$thee + franken_freqs_df$thou +
                       franken_freqs_df$thy + franken_freqs_df$thine
@@ -380,7 +378,7 @@ In other words, the mean amount of archaic pronouns across all 400-word samples 
 # Conclusion
 Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and literary language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using some of the same features.
 
-In a future article, I may look at a more formal way to classify samples of *Frankenstein* as written by Mary or Percy based on the training texts we used in the second PCA. Nevertheless, the analysis in this article led to some interesting insights regarding the differences in Mary and Percy's writing styles.
+In a future article, I may look at a more formal way to classify samples of *Frankenstein* as written by Mary or Percy, based on the training texts we used in the second PCA. Nevertheless, the analysis in this article led to some interesting insights regarding the differences in Mary and Percy's writing styles.
 
 # References
 
