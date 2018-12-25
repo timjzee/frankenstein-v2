@@ -174,13 +174,17 @@ barplot(pron_counts1, main = "Distribution of 'thee' / 'thou' / 'ye' / 'you' in 
 
 hand_df_pron2 = hand_df[hand_df$text_tokens == "thy" | 
                           hand_df$text_tokens == "thine" | 
-                          hand_df$text_tokens == "your",]
+                          hand_df$text_tokens == "your" | 
+                          hand_df$text_tokens == "yours",]
 hand_df_pron2$text_tokens = factor(hand_df_pron2$text_tokens)
 hand_df_pron2$hand_tokens = factor(hand_df_pron2$hand_tokens)
 pron_counts2 = table(hand_df_pron2$text_tokens, hand_df_pron2$hand_tokens)
+pron_counts2["your",] = pron_counts2["your",] + pron_counts2["yours",]
+pron_counts2 = pron_counts2[1:3,]
+rownames(pron_counts2) = c("thine", "thy", "your(s)")
 pron_counts2[, "mws"] = pron_counts2[, "mws"] / sum(pron_counts2[, "mws"])
 pron_counts2[, "pbs"] = pron_counts2[, "pbs"] / sum(pron_counts2[, "pbs"])
-barplot(pron_counts2, main = "Distribution of 'thine' / 'thy' / 'your' in Frankenstein",
+barplot(pron_counts2, main = "Distribution of 'thine' / 'thy' / 'your(s)' in Frankenstein",
         ylab = "Hand Annotation", col = c("dark gray", "gray", "white"), xpd = FALSE, xlab = "Proportion of variant",
         legend = rownames(pron_counts2), horiz = TRUE, names.arg = colnames(pron_counts2),
         args.legend = list(x = "top", horiz = TRUE, inset=c(0, -0.2), xpd = TRUE, bty = "n"))
@@ -223,6 +227,8 @@ ggbiplot(training_plus_pca,
 # what makes some of the pbs-F samples stand out?
 # e.g. sample 213
 franken_freqs_df["pbs_213",]
+franken_th_df = franken_freqs_df
+franken_th_df$th = franken_th_df$thee + franken_th_df$thou + franken_th_df$thy + franken_th_df$thine
 
 
 # add projection of glenarvon samples to show that positioning of frankenstein samples is actually meaningful

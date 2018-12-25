@@ -375,7 +375,7 @@ franken_freqs_df$th = franken_freqs_df$thee + franken_freqs_df$thou +
 > franken_th_df["pbs_213",]$th * 4
 [1] 16
 ```
-In other words, the mean amount of archaic pronouns across all 400-word samples of *Frankenstein* is much smaller than 1, whereas sample 213 contains 16 archaic pronouns. It seems, then, that in certain cases Percy's distinctive use of certain words can be used to identfy stretches of the *Frankenstein* draft that were written in his hand.
+In other words, the mean amount of archaic pronouns across all 400-word samples of *Frankenstein* is much smaller than 1, whereas sample 213 contains 16 archaic pronouns. It seems, then, that in certain cases Percy's distinctive use of certain words can be used to identify stretches of the *Frankenstein* draft that were written in his hand.
 
 # Conclusion
 Using just function word frequencies, it is hard to separate all of Mary and Percy's contributions to Frankenstein. However, these features *can* be used to differentiate their styles in general. Percy tends to use more dramatic and literary language. And some longer stretches of *Frankenstein* that were penned by Percy can definitely be identified as such, using some of the same features.
