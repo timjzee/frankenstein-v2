@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hacking Frankenstein (Part 2): Exploring Percy's contribution"
-date:   2018-12-24 04:15:00 +0100
+date:   2018-12-26 01:50:00 +0100
 categories: linguistics literature text-mining
 ---
 
@@ -224,37 +224,31 @@ One way around this problem would be to look at other texts written by Mary and 
 
 Finding suitable material written by Percy is a bit more difficult. Unfortunately, most of Percy’s later work consists of poetry, which is too different from prose fiction in its structure and diction to be of much use as a training text. However, Percy did publish two novellas, *Zastrozzi* and *St Irvyne*, during his time at Eton College and Oxford University in 1810 (O’Neill, 2004). Crucially, he did not start his relationship with William Godwin, which led to his acquaintance with Mary, until January of 1812 (O’Neill, 2004). It can be concluded, then, that Mary had no influence whatsoever on these novellas.
 
-Of course, these texts also have to be prepared for use in a PCA. Fortunately, this process is much easier for these novels than it was for *Frankenstein*, as we don't need to keep track of hand changes. I simply downloaded the raw text files from [Project Gutenberg](https://www.gutenberg.org) and [Project Gutenberg of Australia](http://gutenberg.net.au), ran a simple *Python* tokenization script based on regular expressions, and saved the tokenized texts as .json arrays. For example:
+Of course, these texts also have to be prepared for use in a PCA. Fortunately, this process is much easier for these novels than it was for *Frankenstein*, as we don't need to keep track of hand changes. I simply downloaded the raw text files from [Project Gutenberg](https://www.gutenberg.org) and [Project Gutenberg of Australia](http://gutenberg.net.au), and turned them into tokenized arrays; the *R* code below uses the regular expression `[a-zA-Z0-9]+` to match all sequences of consecutive lowercase letters, uppercase letters and numbers, that is to say, all words, and put them into an array.
+
 ```python
-import json
-import re
+thelastman_text = readChar("./mws_the-last-man.txt", file.info("./mws_the-last-man.txt")$size)
+thelastman = tolower(regmatches(thelastman_text, gregexpr("[a-zA-Z0-9]+", thelastman_text, perl = TRUE))[[0]])
 
-def tokenize(text):
-    split_list = [' ', '!', '(', ';', "'", '?', '\n', '^', ')', '–', '.', ',', '—', '>', '"', ':', '=', '-']
-    raw_split = re.split(r"[{}]+".format(re.escape("".join(split_list))), text)
-    word_list = [wrd.lower() for wrd in raw_split if len(wrd) > 0]
-    return word_list
+stirvyne_text = readChar("./pbs_st-irvyne.txt", file.info("./pbs_st-irvyne.txt")$size)
+stirvyne = tolower(regmatches(stirvyne_text, gregexpr("[a-zA-Z0-9]+", stirvyne_text, perl = TRUE))[[0]])
 
-with open("mws_the-last-man.txt") as f:
-    thelastman = f.read()
-
-thelastman_list = tokenize(thelastman)
-with open("mws_the-last-man.json", "w") as f:
-    f.write(json.dumps(thelastman_list))
+zastrozzi_text = readChar("./pbs_zastrozzi.txt", file.info("./pbs_zastrozzi.txt")$size)
+zastrozzi = tolower(regmatches(zastrozzi_text, gregexpr("[a-zA-Z0-9]+", zastrozzi_text, perl = TRUE))[[0]])
 ```
 
 After preprocessing the new texts, we can prepare them for PCA in much the same way as we did for *Frankenstein*. However, this time we'll use the `make.samples()` function from the `stylo` package to sample the texts. We'll also use a much larger sample size.
+
 ```python
-thelastman = fromJSON(file = "./mws_the-last-man.json")
-stirvyne = fromJSON(file = "./pbs_st-irvyne.json")
-zastrozzi = fromJSON(file = "./pbs_zastrozzi.json")
 training_texts = list(thelastman, stirvyne, zastrozzi)
 names(training_texts) = c("mws_the-last-man", "pbs_st-irvyne", "pbs_zastrozzi")
 
 sample_size = 5000
 training_samples = make.samples(training_texts, sampling = "normal.sampling", sample.size = sample_size)
 ```
+
 Furthermore, we'll use a different function word list: one that also takes into account the most frequent function words in *The Last Man*, *St. Irvyne* and *Zastrozzi*.
+
 ```python
 function_words = fromJSON(file = "./f_words_shelleys.json")
 

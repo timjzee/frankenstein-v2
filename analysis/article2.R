@@ -104,6 +104,15 @@ stirvyne = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized
 zastrozzi = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/pbs_zastrozzi.json")
 glenarvon = fromJSON(file = "/Users/tim/GitHub/frankenstein-v2/analysis/tokenized_texts/lam_glenarvon.json")
 
+#
+thelastman_path = "/Users/tim/GitHub/frankenstein-v2/analysis/pca_texts/MWS_the-last-man.txt"
+thelastman_text = readChar(thelastman_path, file.info(thelastman_path)$size)
+thelastman_text_tokenized = regmatches(thelastman_text, gregexpr("[a-zA-Z0-9]+", thelastman_text, perl = TRUE))
+thelastman_text_tokenized2 = tolower(thelastman_text_tokenized[[1]])
+length(thelastman_text_tokenized2)
+#
+
+
 training_texts = list(thelastman, 
 #                      glenarvon,
                       stirvyne, 
